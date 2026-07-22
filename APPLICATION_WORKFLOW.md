@@ -240,7 +240,7 @@ Incident\s+(\S+)\s+created\s+for\s+Room\s+(\S+)(?:\s+on\s+issue\s+(.+))?
 - Error handling utilities
 
 ### Real-time Configuration
-- WebSocket URL: `https://nodrafts-chat.fly.dev/ws-sockjs`
+- WebSocket URL: `https://nodrafts-chat-dev.fly.dev/ws-sockjs`
 - STOMP destination: `/no-drafts/channels.send`
 - Channel subscription: `/channels/housekeeping-maintenance`
 - User queue: `/users/{userId}`

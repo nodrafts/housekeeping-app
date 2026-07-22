@@ -3,6 +3,7 @@ export type RoomStatus = 'TO_CLEAN' | 'IN_PROGRESS' | 'DONE' | 'OUT_OF_ORDER';
 export interface ChecklistItem {
   id: string;
   label: string;
+  status: 'WAITING' | 'COMPLETED' | 'SKIPPED';
   done: boolean;
   skipped?: boolean;
   notes?: string;
@@ -11,6 +12,7 @@ export interface ChecklistItem {
 
 export interface RoomAssignment {
   id: string; // assignment id
+  taskId: number;
   roomId: string;
   roomNumber: string;
   floor: string;

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'https://nodrafts-property-management.fly.dev',
+  baseURL: 'https://nodrafts-property-management-dev.fly.dev',
 });
 
 /** Human-readable message from failed API calls (for Alert / debugging). */

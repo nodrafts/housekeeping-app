@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import type { InventoryItem, InventoryTier } from './inventoryTypes';
-import { DEFAULT_ORG_ID } from '../../lib/propertyConfig';
 
 type InventoryTypeResponse = {
   id?: string;
@@ -332,7 +331,7 @@ function normalizeCommonIssues(raw: unknown, depth = 0): string[] {
 function guessCommonIssuesFromRow(row: InventoryTypeResponse): string[] {
   const anyRow: any = row;
   // Scan for the first field that looks like an issue list.
-  for (const [key, val] of Object.entries(anyRow)) {
+  for (const [_key, val] of Object.entries(anyRow)) {
     if (val == null) continue;
 
     if (typeof val === 'string') {

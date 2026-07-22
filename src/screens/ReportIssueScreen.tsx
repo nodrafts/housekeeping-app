@@ -18,6 +18,9 @@ import type { InventoryItem } from '../modules/housekeeping/inventoryTypes';
 import { useCreateIncident } from '../modules/housekeeping/useCreateIncident';
 import type { IncidentCategory, IncidentSeverity } from '../modules/housekeeping/useCreateIncident';
 import { getApiErrorMessage } from '../lib/api';
+import { useAuth } from '../modules/auth/useAuth';
+import { useHotelStore } from '../modules/hotel/useHotelStore';
+import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'ReportIssue'>;
 
@@ -58,7 +61,10 @@ const SEVERITY_OPTIONS: { key: IncidentSeverity; label: string }[] = [
 
 export function ReportIssueScreen({ navigation, route }: Props) {
   const { assignmentId } = route.params;
-  const inventoryQuery = useInventory('');
+  const { user } = useAuth();
+  const { selectedHotel } = useHotelStore();
+  const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
+  const inventoryQuery = useInventory(hotelCode);
   const createIncident = useCreateIncident();
 
   const [selectedTier, setSelectedTier] = useState<'MOVABLE' | 'FIXED' | null>(null);
@@ -97,7 +103,7 @@ export function ReportIssueScreen({ navigation, route }: Props) {
           ? fallbackSelectedItem.commonIssues
           : Array.from(new Set(fallbackItemsForTier.flatMap((i) => i.commonIssues ?? []).filter(Boolean)));
 
-  const { data: assignment } = useAssignment(assignmentId);
+  const { data: assignment } = useAssignment(assignmentId, hotelCode);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -109,12 +115,13 @@ export function ReportIssueScreen({ navigation, route }: Props) {
     try {
       setSubmitting(true);
       await createIncident.mutateAsync({
+        hotelCode,
         assignmentId,
         roomNumber,
-        tier: selectedTier ?? 'MOVABLE',
-        itemId: selectedItem.id,
-        itemName: selectedItem.name,
-        issue: selectedIssue,
+        unitType: assignment?.type,
+        title: `${selectedItem.name}: ${selectedIssue}`,
+        description: selectedIssue,
+        incidentType: selectedItem.name,
         category: selectedCategory,
         severity: selectedSeverity,
       });

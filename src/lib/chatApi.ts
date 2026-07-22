@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const chatApi = axios.create({
-  baseURL: 'https://nodrafts-chat.fly.dev/api/v1',
+  baseURL: 'https://nodrafts-chat-dev.fly.dev/api/v1',
 });
 
 export function setChatToken(token: string | null) {

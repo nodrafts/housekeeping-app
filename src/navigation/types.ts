@@ -5,17 +5,16 @@ export type AuthStackParamList = {
 // Bottom tab param lists
 export type StaffTabParamList = {
   Home: undefined;
-  Messages: undefined;
-  Profile: undefined;
+  Calendar: undefined;
   Settings: undefined;
+  Profile: undefined;
 };
 
 export type AdminTabParamList = {
-  Dashboard: undefined;
-  Rooms: undefined;
-  Messages: undefined;
-  Profile: undefined;
+  Home: undefined;
+  Calendar: undefined;
   Settings: undefined;
+  Profile: undefined;
 };
 
 // Stack screens nested inside tabs (for drill-down)

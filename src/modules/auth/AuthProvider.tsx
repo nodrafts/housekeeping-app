@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api, setAuthToken } from '../../lib/api';
-import type { User, LoginRequest, LoginResponse } from './types';
+import type { User, LoginRequest, UserRole } from './types';
 import { setChatToken } from '../../lib/chatApi';
 
 interface AuthContextValue {
@@ -12,7 +12,38 @@ interface AuthContextValue {
   logout: () => void;
 }
 
+type CurrentUserResponse = {
+  userId: string;
+  email: string;
+  name: string;
+  platformAdmin: boolean;
+  orgPermissions?: string[];
+  hotelPermissions?: Record<string, string[]>;
+  assignedHotels?: string[];
+};
+
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function hasAdminPermission(me: CurrentUserResponse | null): boolean {
+  if (!me) return false;
+  if (me.platformAdmin) return true;
+
+  const orgPermissions = me.orgPermissions ?? [];
+  if (orgPermissions.some((permission) => permission === 'super_user' || permission === 'perm_super_user')) {
+    return true;
+  }
+
+  return Object.values(me.hotelPermissions ?? {}).some((permissions) =>
+    permissions.some((permission) => permission === 'admin' || permission === 'perm_admin'),
+  );
+}
+
+function buildRole(me: CurrentUserResponse | null, fallbackRole?: string): UserRole {
+  if (hasAdminPermission(me) || fallbackRole === 'ADMIN') {
+    return 'ADMIN';
+  }
+  return 'STAFF';
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -41,28 +72,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       const { data } = response.data;
+      setAuthToken(data.token);
+      setChatToken(data.token);
+
+      let currentUser: CurrentUserResponse | null = null;
+      try {
+        const meResponse = await api.get<{ data: CurrentUserResponse }>('/api/v1/auth/me');
+        currentUser = meResponse.data.data;
+      } catch {
+        currentUser = null;
+      }
 
       const fullName = [data.firstName, data.lastName]
         .filter(Boolean)
         .join(' ');
-
-      // Backend may return role/hotelCode — fall back to STAFF if absent
       const raw = data as any;
+      const assignedHotels = currentUser?.assignedHotels ?? [];
+      const firstHotelCode = raw.hotelCode ?? assignedHotels[0];
+
       const nextUser: User = {
         id: data.userId,
-        name: fullName || data.email,
+        name: currentUser?.name || fullName || data.email,
         email: data.email,
-        role: raw.role ?? 'STAFF',
+        role: buildRole(currentUser, raw.role),
         designation: raw.designation ?? undefined,
-        hotelCode: raw.hotelCode ?? undefined,
+        hotelCode: firstHotelCode ?? undefined,
         hotelName: raw.hotelName ?? undefined,
+        platformAdmin: currentUser?.platformAdmin ?? false,
+        assignedHotels,
       };
 
       setUser(nextUser);
       setAccessToken(data.token);
-      setAuthToken(data.token);
-      setChatToken(data.token);
-    } catch (e) {
+    } catch {
       setError('Invalid email or password');
     } finally {
       setLoading(false);
@@ -73,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setAccessToken(null);
     setAuthToken(null);
+    setChatToken(null);
   };
 
   // TODO: load persisted user/token here

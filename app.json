@@ -1,4 +1,17 @@
 {
-  "name": "housekeepingNative",
-  "displayName": "housekeepingNative"
+  "expo": {
+    "name": "NoDrafts Housekeeping",
+    "slug": "nodrafts-housekeeping",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "nodrafts-housekeeping",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nodrafts.housekeeping"
+    },
+    "android": {
+      "package": "com.nodrafts.housekeeping"
+    }
+  }
 }

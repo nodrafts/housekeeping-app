@@ -1,13 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AppStackParamList } from '../navigation/types';
 import { Screen } from '../components/layout/Screen';
 import { useAuth } from '../modules/auth/useAuth';
 
-type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>;
-
-export function ProfileScreen({}: Props) {
+export function ProfileScreen() {
   const { user, logout } = useAuth();
 
   return (
@@ -34,13 +30,13 @@ export function ProfileScreen({}: Props) {
             </Text>
           </View>
 
-          {user?.hotelId ? (
+          {user?.hotelCode ? (
             <View className="mt-4">
               <Text className="text-sm font-medium text-slate-500">
                 Hotel
               </Text>
               <Text className="text-base text-slate-900">
-                {user.hotelId}
+                {user.hotelCode}
               </Text>
             </View>
           ) : null}

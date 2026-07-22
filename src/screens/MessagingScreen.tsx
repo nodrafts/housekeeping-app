@@ -65,7 +65,7 @@ function parseIncidentFromText(text: string): ParsedIncidentLink | null {
   return null;
 }
 
-export function MessagingScreen({}: Props) {
+export function MessagingScreen({}: Partial<Props>) {
   const { user, accessToken } = useAuthContext();
   const { data: channel, isLoading: channelLoading } = useHousekeepingChannel();
   const {

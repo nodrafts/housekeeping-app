@@ -1,20 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
-import type { RoomAssignment } from './types';
-import { CURRENT_ASSIGNMENTS } from './mockData';
+import { assignmentsKey, fetchAssignments } from './roomAssignmentsApi';
 
-const ASSIGNMENTS_KEY = ['assignments'];
-
-async function fetchAssignments(): Promise<RoomAssignment[]> {
-  // Front-end only: return the in-memory assignments with a small delay
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(CURRENT_ASSIGNMENTS), 150);
-  });
+function todayInput() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
-export function useAssignments() {
+export function useAssignments(hotelCode?: string, dueDate?: string) {
+  const resolvedDueDate = dueDate ?? todayInput();
   return useQuery({
-    queryKey: ASSIGNMENTS_KEY,
-    queryFn: fetchAssignments,
+    queryKey: assignmentsKey(hotelCode, resolvedDueDate),
+    queryFn: () => fetchAssignments(hotelCode, resolvedDueDate),
+    enabled: !!hotelCode,
   });
 }
-

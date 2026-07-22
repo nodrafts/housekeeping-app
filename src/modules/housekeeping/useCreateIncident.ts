@@ -15,12 +15,13 @@ export interface CreateIncidentPayload {
   hotelCode: string;
   assignmentId: string;
   roomNumber: string;
-  tier: 'MOVABLE' | 'FIXED';
-  itemId: string;
-  itemName: string;
-  issue: string;
+  unitType?: string;
+  title: string;
+  description?: string | null;
+  incidentType: string;
   category: IncidentCategory;
   severity: IncidentSeverity;
+  immediateActions?: string | null;
 }
 
 export interface CreateIncidentResult {
@@ -28,69 +29,37 @@ export interface CreateIncidentResult {
   payload?: CreateIncidentPayload;
 }
 
-function newIncidentId(): string {
-  const cryptoRef = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
-  if (cryptoRef && typeof cryptoRef.randomUUID === 'function') {
-    return cryptoRef.randomUUID();
-  }
-  // RFC4122 v4 fallback (works when crypto.randomUUID is unavailable)
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
-/**
- * Backend expects: incidentId, classification, location, narrative
- * (see Property Management incident validation).
- */
 function buildIncidentRequestBody(payload: CreateIncidentPayload) {
-  const incidentId = newIncidentId();
   const room = payload.roomNumber.trim() || 'Unknown';
   return {
-    incidentId,
-    classification: {
-      category: payload.category,
-      incidentType: payload.itemName,
-      severity: payload.severity,
-    },
-    location: {
-      roomNumber: room,
-      areaName: null,
-      floor: null,
-      notes: null,
-    },
-    narrative: {
-      summary: `${payload.itemName}: ${payload.issue}`,
-      whatHappened: `Issue reported for ${payload.itemName} in ${room}: ${payload.issue}`,
-      immediateActionsTaken: null,
-    },
-    // Keep original fields for APIs that still accept them
-    assignmentId: payload.assignmentId,
-    roomNumber: payload.roomNumber,
-    tier: payload.tier,
-    itemId: payload.itemId,
-    itemName: payload.itemName,
-    issue: payload.issue,
+    title: payload.title,
+    description: payload.description?.trim() || payload.title,
+    category: payload.category,
+    incidentType: payload.incidentType,
+    severity: payload.severity,
+    unit: room,
+    unitType: payload.unitType ?? 'ROOM',
+    locationNotes: `Housekeeping task ${payload.assignmentId}`,
+    immediateActions: payload.immediateActions?.trim() || null,
+    images: null,
   };
 }
 
-async function createIncident(payload: CreateIncidentPayload & { hotelCode: string }) {
+async function createIncident(payload: CreateIncidentPayload): Promise<CreateIncidentResult> {
   const body = buildIncidentRequestBody(payload);
-  const res = await api.post<{ data?: CreateIncidentResult } | CreateIncidentResult>(
+  const res = await api.post<any>(
     `/api/v1/hotels/${payload.hotelCode}/incidents`,
     body,
   );
 
-  const resBody: any = res.data;
-  const incidentId = resBody?.id
-    ? String(resBody.id)
-    : resBody?.data?.id
-      ? String(resBody.data.id)
-      : body.incidentId;
+  const resBody = res.data;
+  const incidentId =
+    resBody?.data?.incidentId ??
+    resBody?.incidentId ??
+    resBody?.data?.id ??
+    resBody?.id;
 
-  return { id: incidentId, payload };
+  return { id: String(incidentId), payload };
 }
 
 export function useCreateIncident() {

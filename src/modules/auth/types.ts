@@ -8,6 +8,8 @@ export interface User {
   designation?: string;
   hotelCode?: string;   // pre-assigned hotel for STAFF
   hotelName?: string;
+  platformAdmin?: boolean;
+  assignedHotels?: string[];
 }
 
 export interface AuthSession {

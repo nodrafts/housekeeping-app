@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, Modal,
-  Pressable, TextInput, Alert,
+  View, Text, ScrollView, TouchableOpacity, TextInput, Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../navigation/types';
 import { useAuth } from '../modules/auth/useAuth';
@@ -10,16 +11,17 @@ import { useAssignments } from '../modules/housekeeping/useAssignments';
 import { useAllIncidents, getOpenIncidentsForRoom } from '../modules/housekeeping/useIncidents';
 import { useMessages } from '../modules/chat/useMessages';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
-import { useRole } from '../modules/auth/useRole';
+import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Dashboard'>;
 
-export function DashboardScreen({ navigation }: Props) {
+export function DashboardScreen({ navigation }: Partial<Props>) {
+  const fallbackNavigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const nav = navigation ?? fallbackNavigation;
   const { user, logout } = useAuth();
   const { selectedHotel } = useHotelStore();
-  const { isAdmin } = useRole();
-  const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? '';
-  const { data: assignments = [] } = useAssignments();
+  const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
+  const { data: assignments = [] } = useAssignments(hotelCode);
   const { data: allIncidents = [] } = useAllIncidents(hotelCode);
   const { data: messages = [] } = useMessages('housekeeping-maintenance', 20);
   const [editName, setEditName] = useState(user?.name ?? '');
@@ -48,7 +50,7 @@ export function DashboardScreen({ navigation }: Props) {
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       {/* Header */}
       <View style={{ backgroundColor: '#2563eb', paddingTop: 48, paddingBottom: 20, paddingHorizontal: 20 }}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginBottom: 12 }}>
+        <TouchableOpacity onPress={() => nav.goBack()} style={{ marginBottom: 12 }}>
           <Text style={{ color: '#93c5fd', fontSize: 13 }}>← Back</Text>
         </TouchableOpacity>
         <Text style={{ color: '#ffffff', fontSize: 20, fontWeight: '700' }}>Dashboard</Text>
@@ -106,10 +108,10 @@ export function DashboardScreen({ navigation }: Props) {
         <Text style={{ fontSize: 13, fontWeight: '600', color: '#6b7280', marginBottom: 8, textTransform: 'uppercase' }}>Quick Stats</Text>
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
           {[
-            { label: 'Total Rooms', value: totalRooms, color: '#2563eb', onPress: () => navigation.navigate('RoomsList') },
-            { label: 'Done', value: doneRooms, color: '#10b981', onPress: () => navigation.navigate('RoomsList') },
-            { label: 'In Progress', value: inProgressRooms, color: '#f59e0b', onPress: () => navigation.navigate('RoomsList') },
-            { label: 'Open Issues', value: allOpenIncidents.length, color: '#ef4444', onPress: () => navigation.navigate('RoomsList') },
+            { label: 'Total Rooms', value: totalRooms, color: '#2563eb', onPress: () => nav.navigate('RoomsList') },
+            { label: 'Done', value: doneRooms, color: '#10b981', onPress: () => nav.navigate('RoomsList') },
+            { label: 'In Progress', value: inProgressRooms, color: '#f59e0b', onPress: () => nav.navigate('RoomsList') },
+            { label: 'Open Issues', value: allOpenIncidents.length, color: '#ef4444', onPress: () => nav.navigate('RoomsList') },
           ].map((s) => (
             <TouchableOpacity key={s.label} onPress={s.onPress} activeOpacity={0.75} style={{ flex: 1, backgroundColor: '#ffffff', borderRadius: 12, padding: 12, alignItems: 'center', borderTopWidth: 3, borderTopColor: s.color }}>
               <Text style={{ fontSize: 22, fontWeight: '700', color: s.color }}>{s.value}</Text>
@@ -162,7 +164,7 @@ export function DashboardScreen({ navigation }: Props) {
             return (
               <TouchableOpacity
               key={a.id}
-              onPress={() => navigation.navigate('RoomDetails', { assignmentId: a.id })}
+              onPress={() => nav.navigate('RoomDetails', { assignmentId: a.id })}
               activeOpacity={0.75}
               style={{ paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: idx < assignments.length - 1 ? 1 : 0, borderBottomColor: '#f3f4f6' }}
             >
@@ -197,7 +199,7 @@ export function DashboardScreen({ navigation }: Props) {
             recentMessages.map((m, idx) => (
               <TouchableOpacity
                 key={m.id}
-                onPress={() => navigation.navigate('Messaging')}
+                onPress={() => nav.navigate('Messaging')}
                 activeOpacity={0.75}
                 style={{ paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: idx < recentMessages.length - 1 ? 1 : 0, borderBottomColor: '#f3f4f6' }}
               >

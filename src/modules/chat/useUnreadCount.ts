@@ -1,5 +1,3 @@
-import { useState, useCallback } from 'react';
-
 // Module-level so it persists across renders/navigations
 let lastReadAt: number = Date.now();
 

@@ -6,89 +6,81 @@ import { AuthStackParamList, AppStackParamList, StaffTabParamList, AdminTabParam
 import { LoginScreen } from '../screens/LoginScreen';
 import { RoomsListScreen } from '../screens/RoomsListScreen';
 import { RoomDetailsScreen } from '../screens/RoomDetailsScreen';
-import { DashboardScreen } from '../screens/DashboardScreen';
 import { ReportIssueScreen } from '../screens/ReportIssueScreen';
 import { HotelSelectScreen } from '../screens/HotelSelectScreen';
-import { MessagingScreen } from '../screens/MessagingScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
-import { ProfileScreen } from '../screens/ProfileScreen';
 import { useAuth } from '../modules/auth/useAuth';
 import { useRole } from '../modules/auth/useRole';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
-import { useMessages } from '../modules/chat/useMessages';
-import { useUnreadCount } from '../modules/chat/useUnreadCount';
+import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 const StaffTab = createBottomTabNavigator<StaffTabParamList>();
 const AdminTab = createBottomTabNavigator<AdminTabParamList>();
 
+const TAB_BAR_STYLE = {
+  backgroundColor: '#ffffff',
+  borderTopColor: '#e5e7eb',
+  borderTopWidth: 1,
+  height: 64,
+  paddingBottom: 9,
+  paddingTop: 7,
+};
+
 function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
-  return (
-    <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>{icon}</Text>
-  );
+  return <Text style={{ fontSize: 21, color: focused ? '#2563eb' : '#94a3b8' }}>{icon}</Text>;
 }
 
-function MessagesTabIcon({ focused }: { focused: boolean }) {
-  const { data: messages = [] } = useMessages('housekeeping-maintenance', 50);
-  const unread = useUnreadCount(messages);
+function FrozenTabScreen({ label }: { label: string }) {
   return (
-    <View>
-      <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>💬</Text>
-      {unread > 0 && (
-        <View style={{
-          position: 'absolute', top: -4, right: -6,
-          minWidth: 16, height: 16, borderRadius: 8,
-          backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
-          paddingHorizontal: 3, borderWidth: 1.5, borderColor: '#ffffff',
-        }}>
-          <Text style={{ fontSize: 9, fontWeight: '700', color: '#ffffff' }}>
-            {unread > 99 ? '99+' : unread}
-          </Text>
-        </View>
-      )}
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc' }}>
+      <Text style={{ fontSize: 18, fontWeight: '800', color: '#0f172a' }}>{label}</Text>
     </View>
   );
 }
 
-const TAB_BAR_STYLE = {
-  backgroundColor: '#1e3a5f',
-  borderTopColor: '#f97316',
-  borderTopWidth: 2,
-  height: 64,
-  paddingBottom: 10,
-  paddingTop: 8,
-};
-
-const TAB_SCREEN_OPTIONS = {
-  headerShadowVisible: false,
-  headerTitleAlign: 'left' as const,
-};
+function frozenListeners() {
+  return {
+    tabPress: (event: { preventDefault: () => void }) => {
+      event.preventDefault();
+    },
+  };
+}
 
 function StaffTabNavigator() {
   return (
     <StaffTab.Navigator
-      screenOptions={{ tabBarStyle: TAB_BAR_STYLE, tabBarActiveTintColor: '#f97316', tabBarInactiveTintColor: '#93c5fd', headerShown: false }}
+      id="StaffTabs"
+      initialRouteName="Calendar"
+      screenOptions={{
+        tabBarStyle: TAB_BAR_STYLE,
+        tabBarActiveTintColor: '#2563eb',
+        tabBarInactiveTintColor: '#94a3b8',
+        headerShown: false,
+      }}
     >
       <StaffTab.Screen
         name="Home"
+        children={() => <FrozenTabScreen label="Home" />}
+        listeners={frozenListeners}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u2302'} focused={focused} />, tabBarLabel: 'Home' }}
+      />
+      <StaffTab.Screen
+        name="Calendar"
         component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="🏠" focused={focused} />, tabBarLabel: 'Home' }}
-      />
-      <StaffTab.Screen
-        name="Messages"
-        component={MessagingScreen}
-        options={{ tabBarIcon: ({ focused }) => <MessagesTabIcon focused={focused} />, tabBarLabel: 'Messages' }}
-      />
-      <StaffTab.Screen
-        name="Profile"
-        component={DashboardScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />, tabBarLabel: 'Profile' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u25a3'} focused={focused} />, tabBarLabel: 'Calendar' }}
       />
       <StaffTab.Screen
         name="Settings"
-        component={SettingsScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="⚙️" focused={focused} />, tabBarLabel: 'Settings' }}
+        children={() => <FrozenTabScreen label="Settings" />}
+        listeners={frozenListeners}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u2699'} focused={focused} />, tabBarLabel: 'Settings' }}
+      />
+      <StaffTab.Screen
+        name="Profile"
+        children={() => <FrozenTabScreen label="Profile" />}
+        listeners={frozenListeners}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u25ef'} focused={focused} />, tabBarLabel: 'Profile' }}
       />
     </StaffTab.Navigator>
   );
@@ -97,79 +89,90 @@ function StaffTabNavigator() {
 function AdminTabNavigator() {
   return (
     <AdminTab.Navigator
-      screenOptions={{ tabBarStyle: TAB_BAR_STYLE, tabBarActiveTintColor: '#f97316', tabBarInactiveTintColor: '#93c5fd', headerShown: false }}
+      id="AdminTabs"
+      initialRouteName="Calendar"
+      screenOptions={{
+        tabBarStyle: TAB_BAR_STYLE,
+        tabBarActiveTintColor: '#2563eb',
+        tabBarInactiveTintColor: '#94a3b8',
+        headerShown: false,
+      }}
     >
       <AdminTab.Screen
-        name="Dashboard"
-        component={DashboardScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="📊" focused={focused} />, tabBarLabel: 'Dashboard' }}
+        name="Home"
+        children={() => <FrozenTabScreen label="Home" />}
+        listeners={frozenListeners}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u2302'} focused={focused} />, tabBarLabel: 'Home' }}
       />
       <AdminTab.Screen
-        name="Rooms"
+        name="Calendar"
         component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="🏨" focused={focused} />, tabBarLabel: 'Rooms' }}
-      />
-      <AdminTab.Screen
-        name="Messages"
-        component={MessagingScreen}
-        options={{ tabBarIcon: ({ focused }) => <MessagesTabIcon focused={focused} />, tabBarLabel: 'Messages' }}
-      />
-      <AdminTab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />, tabBarLabel: 'Profile' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u25a3'} focused={focused} />, tabBarLabel: 'Calendar' }}
       />
       <AdminTab.Screen
         name="Settings"
-        component={SettingsScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="⚙️" focused={focused} />, tabBarLabel: 'Settings' }}
+        children={() => <FrozenTabScreen label="Settings" />}
+        listeners={frozenListeners}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u2699'} focused={focused} />, tabBarLabel: 'Settings' }}
+      />
+      <AdminTab.Screen
+        name="Profile"
+        children={() => <FrozenTabScreen label="Profile" />}
+        listeners={frozenListeners}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u25ef'} focused={focused} />, tabBarLabel: 'Profile' }}
       />
     </AdminTab.Navigator>
   );
 }
 
 function AppNavigator() {
-  const { isAdmin, isStaff } = useRole();
+  const { isAdmin } = useRole();
   const { user } = useAuth();
   const { selectedHotel, setSelectedHotel } = useHotelStore();
 
-  // Auto-assign hotel for staff from their user profile
   useEffect(() => {
-    if (isStaff && user?.hotelCode && !selectedHotel) {
-      setSelectedHotel({
-        hotelCode: user.hotelCode,
-        name: user.hotelName ?? user.hotelCode,
-      });
-    }
-  }, [isStaff, user, selectedHotel]);
+    if (selectedHotel) return;
+    const hotelCode = user?.hotelCode ?? user?.assignedHotels?.[0] ?? DEFAULT_HOTEL_CODE;
+    setSelectedHotel({
+      hotelCode,
+      name: user?.hotelName ?? hotelCode,
+    });
+  }, [selectedHotel, setSelectedHotel, user]);
 
   return (
-    <AppStack.Navigator screenOptions={{ headerShadowVisible: false, headerTitleAlign: 'left' }}>
-      {/* Admin sees hotel select first; staff skips it */}
-      {isAdmin && !selectedHotel && (
+    <AppStack.Navigator
+      id="AppStack"
+      initialRouteName={isAdmin ? 'AdminTabs' : 'StaffTabs'}
+      screenOptions={{ headerShadowVisible: false, headerTitleAlign: 'left' }}
+    >
+      {isAdmin ? (
         <AppStack.Screen
-          name="HotelSelect"
-          component={HotelSelectScreen}
-          options={{ headerShown: false, presentation: 'transparentModal', animation: 'fade' }}
+          name="AdminTabs"
+          component={AdminTabNavigator}
+          options={{ headerShown: false }}
+        />
+      ) : (
+        <AppStack.Screen
+          name="StaffTabs"
+          component={StaffTabNavigator}
+          options={{ headerShown: false }}
         />
       )}
-      <AppStack.Screen
-        name={isAdmin ? 'AdminTabs' : 'StaffTabs'}
-        component={isAdmin ? AdminTabNavigator : StaffTabNavigator}
-        options={{ headerShown: false }}
-      />
       <AppStack.Screen
         name="RoomDetails"
         component={RoomDetailsScreen}
         options={{ title: 'Room details' }}
       />
-      {isAdmin && (
-        <AppStack.Screen
-          name="HotelSelect"
-          component={HotelSelectScreen}
-          options={{ headerShown: false, presentation: 'transparentModal', animation: 'fade' }}
-        />
-      )}
+      <AppStack.Screen
+        name="RoomsList"
+        component={RoomsListScreen}
+        options={{ title: 'Schedule' }}
+      />
+      <AppStack.Screen
+        name="HotelSelect"
+        component={HotelSelectScreen}
+        options={{ headerShown: false, presentation: 'transparentModal', animation: 'fade' }}
+      />
       <AppStack.Screen
         name="ReportIssue"
         component={ReportIssueScreen}
@@ -186,7 +189,7 @@ export function RootNavigator() {
 
   if (!user) {
     return (
-      <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Navigator id="AuthStack" screenOptions={{ headerShown: false }}>
         <AuthStack.Screen name="Login" component={LoginScreen} />
       </AuthStack.Navigator>
     );

@@ -23,7 +23,7 @@ export type IncomingChatEvent =
 
 type Listener = (event: IncomingChatEvent) => void;
 
-const WS_URL = 'https://nodrafts-chat.fly.dev/ws-sockjs';
+const WS_URL = 'https://nodrafts-chat-dev.fly.dev/ws-sockjs';
 const SEND_DESTINATION = '/no-drafts/channels.send';
 
 class RealtimeChatClient {

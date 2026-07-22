@@ -24,10 +24,7 @@ export function HotelSelectScreen({ navigation }: Props) {
   const handleConfirm = () => {
     if (!pending) return;
     setSelectedHotel(pending);
-    navigation.reset({
-      index: 1,
-      routes: [{ name: 'HotelSelect' }, { name: 'RoomsList' }],
-    });
+    navigation.goBack();
   };
 
   return (
