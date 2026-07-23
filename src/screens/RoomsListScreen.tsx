@@ -199,10 +199,10 @@ export function RoomsListScreen({ navigation }: Props) {
                       paddingHorizontal: 9,
                       paddingVertical: 5,
                       borderRadius: radii.pill,
-                      backgroundColor: done ? '#d1fae5' : inProgress ? '#fef3c7' : colors.muted,
+                      backgroundColor: done ? colors.muted : inProgress ? '#fef3c7' : colors.muted,
                     }}
                   >
-                    <Text style={{ fontSize: 11, fontWeight: '800', color: done ? '#065f46' : inProgress ? '#92400e' : colors.foreground }}>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: done ? colors.foreground : inProgress ? '#92400e' : colors.foreground }}>
                       {done ? 'DONE' : inProgress ? 'STARTED' : 'OPEN'}
                     </Text>
                   </View>

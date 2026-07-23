@@ -34,6 +34,12 @@ function setChecklistStatus(checklist: ChecklistItem[], itemId: string, status: 
   ));
 }
 
+function statusLabel(item: ChecklistItem) {
+  if (item.status === 'COMPLETED') return 'Done';
+  if (item.status === 'SKIPPED') return 'Skipped';
+  return 'Pending';
+}
+
 export function RoomDetailsScreen({ route, navigation }: Props) {
   const { assignmentId } = route.params;
   const { selectedHotel } = useHotelStore();
@@ -98,7 +104,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
           {data.type ? ` - ${data.type}` : ''}
         </Text>
         <View style={{ marginTop: 12, height: 6, borderRadius: radii.pill, overflow: 'hidden', backgroundColor: colors.border }}>
-          <View style={{ width: `${progress}%`, height: '100%', borderRadius: radii.pill, backgroundColor: progress === 100 ? colors.success : colors.primary }} />
+          <View style={{ width: `${progress}%`, height: '100%', borderRadius: radii.pill, backgroundColor: colors.primary }} />
         </View>
         <Text style={{ marginTop: 4, fontSize: 11, color: colors.mutedForeground }}>{progress}% complete</Text>
       </View>
@@ -108,32 +114,57 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
           Checklist
         </Text>
 
-        {checklist.map((item) => {
+        {checklist.map((item, index) => {
           const done = item.status === 'COMPLETED';
           const skipped = item.status === 'SKIPPED';
 
           return (
             <View
-              key={item.id}
+              key={`${item.id}-${index}`}
               style={{
                 marginBottom: 14,
                 borderRadius: radii.md,
                 borderWidth: 1.5,
-                borderColor: done ? colors.success : skipped ? colors.input : colors.border,
-                backgroundColor: done ? colors.successMuted : colors.card,
-                padding: 16,
+                borderColor: done || skipped ? colors.primary : colors.border,
+                backgroundColor: colors.card,
+                padding: 14,
               }}
             >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '800',
-                  color: skipped ? colors.mutedForeground : colors.foreground,
-                  marginBottom: 12,
-                }}
-              >
-                {item.label}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+                <TouchableOpacity
+                  onPress={() => updateItem(item, done ? 'WAITING' : 'COMPLETED')}
+                  activeOpacity={0.72}
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: radii.sm,
+                    borderWidth: 1.5,
+                    borderColor: done ? colors.primary : colors.input,
+                    backgroundColor: done ? colors.primary : colors.card,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginTop: 1,
+                  }}
+                >
+                  {done ? <Icon name="check" size={16} color={colors.primaryForeground} strokeWidth={2.5} /> : null}
+                </TouchableOpacity>
+
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      lineHeight: 21,
+                      fontWeight: '800',
+                      color: skipped ? colors.mutedForeground : colors.foreground,
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                  <Text style={{ marginTop: 2, fontSize: 12, fontWeight: '600', color: colors.mutedForeground }}>
+                    {statusLabel(item)}
+                  </Text>
+                </View>
+              </View>
 
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <TouchableOpacity
@@ -142,15 +173,17 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                     flex: 1,
                     height: 44,
                     borderRadius: radii.lg,
-                    backgroundColor: done ? colors.success : colors.primary,
+                    borderWidth: 1.5,
+                    borderColor: done ? colors.primary : colors.input,
+                    backgroundColor: done ? colors.primary : colors.card,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Icon name="check" size={16} color={colors.primaryForeground} strokeWidth={2.5} />
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
-                      {done ? 'Completed' : 'Complete'}
+                    <Icon name="check" size={16} color={done ? colors.primaryForeground : colors.foreground} strokeWidth={2.5} />
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: done ? colors.primaryForeground : colors.foreground }}>
+                      Done
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -162,7 +195,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                     height: 44,
                     borderRadius: radii.lg,
                     borderWidth: 1.5,
-                    borderColor: skipped ? colors.mutedForeground : colors.input,
+                    borderColor: skipped ? colors.primary : colors.input,
                     backgroundColor: skipped ? colors.muted : colors.card,
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -171,7 +204,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <Icon name="skip" size={15} color={colors.mutedForeground} />
                     <Text style={{ fontSize: 14, fontWeight: '700', color: colors.mutedForeground }}>
-                      {skipped ? 'Skipped' : 'Skip'}
+                      Skip
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -196,7 +229,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
             <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
-              {updateStatus.isPending ? 'Saving...' : 'Complete cleaning'}
+              {updateStatus.isPending ? 'Saving...' : 'Mark room clean'}
             </Text>
           </View>
         </TouchableOpacity>

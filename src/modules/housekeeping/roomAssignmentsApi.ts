@@ -31,10 +31,22 @@ function stringField(fields: Record<string, unknown> | null | undefined, key: st
   return text.length > 0 ? text : undefined;
 }
 
-function mapChecklistItem(item: TaskChecklistItem): ChecklistItem {
+function checklistFallbackId(item: TaskChecklistItem, index: number) {
+  const rawId = item.id == null ? '' : String(item.id).trim();
+  if (rawId.length > 0) return rawId;
+
+  const base = String(item.title ?? 'item')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  return `${base || 'item'}-${index}`;
+}
+
+function mapChecklistItem(item: TaskChecklistItem, index: number): ChecklistItem {
   const status = item.status ?? 'WAITING';
   return {
-    id: item.id,
+    id: checklistFallbackId(item, index),
     label: item.title,
     status,
     done: status === 'COMPLETED',

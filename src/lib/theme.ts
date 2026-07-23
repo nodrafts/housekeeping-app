@@ -10,8 +10,8 @@ export const colors = {
   border: '#e2e8f0',
   input: '#cbd5e1',
   accent: '#2563eb',
-  success: '#10b981',
-  successMuted: '#ecfdf5',
+  success: '#0f172a',
+  successMuted: '#f8fafc',
   warning: '#f59e0b',
   destructive: '#dc2626',
 } as const;
@@ -23,4 +23,3 @@ export const radii = {
   xl: 12,
   pill: 999,
 } as const;
-
