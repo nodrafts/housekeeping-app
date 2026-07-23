@@ -50,7 +50,10 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
     }
   }, [data?.id, data?.checklist]);
 
-  const checklist = localChecklist ?? data?.checklist ?? [];
+  const checklist = useMemo(
+    () => localChecklist ?? data?.checklist ?? [],
+    [localChecklist, data?.checklist],
+  );
   const progress = useMemo(() => progressFor(checklist), [checklist]);
   const hasWaitingItems = useMemo(
     () => checklist.some((item) => item.status === 'WAITING'),

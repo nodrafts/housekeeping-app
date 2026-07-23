@@ -53,11 +53,8 @@ function fileNameFor(asset: ImagePicker.ImagePickerAsset, index: number) {
 }
 
 async function attachmentFromAsset(asset: ImagePicker.ImagePickerAsset, index: number): Promise<IncidentAttachment> {
-  let fileSize = asset.fileSize ?? 0;
-  if (!fileSize) {
-    const info = await FileSystem.getInfoAsync(asset.uri);
-    fileSize = info.exists ? info.size : 0;
-  }
+  const info = await FileSystem.getInfoAsync(asset.uri);
+  const fileSize = info.exists ? info.size : asset.fileSize ?? 0;
 
   if (fileSize <= 0) {
     throw new Error('Could not read the selected photo size.');
@@ -202,7 +199,7 @@ export function ReportIssueModal({
       if (attachments.length > 0) {
         try {
           setUploadingPhotos(true);
-          uploadedCount = await uploadIncidentImages(hotelCode, result.id, attachments);
+          uploadedCount = (await uploadIncidentImages(hotelCode, result.id, attachments)).length;
         } catch (err) {
           uploadWarning = getApiErrorMessage(err);
         } finally {
