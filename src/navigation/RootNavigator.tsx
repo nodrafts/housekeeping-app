@@ -12,6 +12,8 @@ import { useAuth } from '../modules/auth/useAuth';
 import { useRole } from '../modules/auth/useRole';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
+import { colors } from '../lib/theme';
+import { Icon, IconName } from '../components/ui/Icon';
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
@@ -19,22 +21,22 @@ const StaffTab = createBottomTabNavigator<StaffTabParamList>();
 const AdminTab = createBottomTabNavigator<AdminTabParamList>();
 
 const TAB_BAR_STYLE = {
-  backgroundColor: '#ffffff',
-  borderTopColor: '#e5e7eb',
+  backgroundColor: colors.card,
+  borderTopColor: colors.border,
   borderTopWidth: 1,
   height: 64,
   paddingBottom: 9,
   paddingTop: 7,
 };
 
-function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
-  return <Text style={{ fontSize: 21, color: focused ? '#2563eb' : '#94a3b8' }}>{icon}</Text>;
+function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
+  return <Icon name={name} size={22} color={focused ? colors.primary : colors.mutedForeground} />;
 }
 
 function FrozenTabScreen({ label }: { label: string }) {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc' }}>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: '#0f172a' }}>{label}</Text>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.foreground }}>{label}</Text>
     </View>
   );
 }
@@ -54,8 +56,8 @@ function StaffTabNavigator() {
       initialRouteName="Calendar"
       screenOptions={{
         tabBarStyle: TAB_BAR_STYLE,
-        tabBarActiveTintColor: '#2563eb',
-        tabBarInactiveTintColor: '#94a3b8',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.mutedForeground,
         headerShown: false,
       }}
     >
@@ -63,24 +65,24 @@ function StaffTabNavigator() {
         name="Home"
         children={() => <FrozenTabScreen label="Home" />}
         listeners={frozenListeners}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u2302'} focused={focused} />, tabBarLabel: 'Home' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />, tabBarLabel: 'Home' }}
       />
       <StaffTab.Screen
         name="Calendar"
         component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u25a3'} focused={focused} />, tabBarLabel: 'Calendar' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: 'Calendar' }}
       />
       <StaffTab.Screen
         name="Settings"
         children={() => <FrozenTabScreen label="Settings" />}
         listeners={frozenListeners}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u2699'} focused={focused} />, tabBarLabel: 'Settings' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} />, tabBarLabel: 'Settings' }}
       />
       <StaffTab.Screen
         name="Profile"
         children={() => <FrozenTabScreen label="Profile" />}
         listeners={frozenListeners}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u25ef'} focused={focused} />, tabBarLabel: 'Profile' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />, tabBarLabel: 'Profile' }}
       />
     </StaffTab.Navigator>
   );
@@ -93,8 +95,8 @@ function AdminTabNavigator() {
       initialRouteName="Calendar"
       screenOptions={{
         tabBarStyle: TAB_BAR_STYLE,
-        tabBarActiveTintColor: '#2563eb',
-        tabBarInactiveTintColor: '#94a3b8',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.mutedForeground,
         headerShown: false,
       }}
     >
@@ -102,24 +104,24 @@ function AdminTabNavigator() {
         name="Home"
         children={() => <FrozenTabScreen label="Home" />}
         listeners={frozenListeners}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u2302'} focused={focused} />, tabBarLabel: 'Home' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />, tabBarLabel: 'Home' }}
       />
       <AdminTab.Screen
         name="Calendar"
         component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u25a3'} focused={focused} />, tabBarLabel: 'Calendar' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: 'Calendar' }}
       />
       <AdminTab.Screen
         name="Settings"
         children={() => <FrozenTabScreen label="Settings" />}
         listeners={frozenListeners}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u2699'} focused={focused} />, tabBarLabel: 'Settings' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} />, tabBarLabel: 'Settings' }}
       />
       <AdminTab.Screen
         name="Profile"
         children={() => <FrozenTabScreen label="Profile" />}
         listeners={frozenListeners}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon={'\u25ef'} focused={focused} />, tabBarLabel: 'Profile' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />, tabBarLabel: 'Profile' }}
       />
     </AdminTab.Navigator>
   );

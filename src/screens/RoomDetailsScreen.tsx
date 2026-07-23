@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -9,7 +9,9 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../navigation/types';
 import { Screen } from '../components/layout/Screen';
-import { useAssignment, useUpdateChecklist, useUpdateStatus } from '../modules/housekeeping/useAssignment';
+import { Icon } from '../components/ui/Icon';
+import { colors, radii } from '../lib/theme';
+import { useAssignment, useUpdateStatus } from '../modules/housekeeping/useAssignment';
 import type { ChecklistItem } from '../modules/housekeeping/types';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { ReportIssueModal } from '../components/ReportIssueModal';
@@ -38,27 +40,31 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
   const { user } = useAuth();
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
   const { data, isLoading } = useAssignment(assignmentId, hotelCode);
-  const updateChecklist = useUpdateChecklist();
   const updateStatus = useUpdateStatus();
   const [helpOpen, setHelpOpen] = useState(false);
+  const [localChecklist, setLocalChecklist] = useState<ChecklistItem[] | null>(null);
 
-  const progress = useMemo(() => data ? progressFor(data.checklist) : 0, [data]);
+  useEffect(() => {
+    if (data?.checklist) {
+      setLocalChecklist(data.checklist);
+    }
+  }, [data?.id, data?.checklist]);
+
+  const checklist = localChecklist ?? data?.checklist ?? [];
+  const progress = useMemo(() => progressFor(checklist), [checklist]);
   const hasWaitingItems = useMemo(
-    () => data ? data.checklist.some((item) => item.status === 'WAITING') : true,
-    [data],
+    () => checklist.some((item) => item.status === 'WAITING'),
+    [checklist],
   );
 
   const updateItem = (item: ChecklistItem, status: ChecklistItem['status']) => {
     if (!data) return;
-    updateChecklist.mutate({
-      assignmentId,
-      checklist: setChecklistStatus(data.checklist, item.id, status),
-    });
+    setLocalChecklist((current) => setChecklistStatus(current ?? data.checklist, item.id, status));
   };
 
   const completeRoom = () => {
     updateStatus.mutate(
-      { assignmentId, status: 'DONE' },
+      { assignmentId, status: 'DONE', checklist },
       { onSuccess: () => navigation.goBack() },
     );
   };
@@ -80,29 +86,29 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
           paddingHorizontal: 16,
           paddingVertical: 12,
           borderBottomWidth: 1,
-          borderBottomColor: '#e5e7eb',
-          backgroundColor: '#ffffff',
+          borderBottomColor: colors.border,
+          backgroundColor: colors.card,
         }}
       >
-        <Text style={{ fontSize: 22, fontWeight: '800', color: '#0f172a' }}>
+        <Text style={{ fontSize: 22, fontWeight: '800', color: colors.foreground }}>
           Room {data.roomNumber}
         </Text>
-        <Text style={{ marginTop: 4, fontSize: 13, color: '#6b7280' }}>
+        <Text style={{ marginTop: 4, fontSize: 13, color: colors.mutedForeground }}>
           {data.floor ? `Floor ${data.floor}` : 'Floor not set'}
           {data.type ? ` - ${data.type}` : ''}
         </Text>
-        <View style={{ marginTop: 12, height: 6, borderRadius: 999, overflow: 'hidden', backgroundColor: '#e5e7eb' }}>
-          <View style={{ width: `${progress}%`, height: '100%', borderRadius: 999, backgroundColor: '#2563eb' }} />
+        <View style={{ marginTop: 12, height: 6, borderRadius: radii.pill, overflow: 'hidden', backgroundColor: colors.border }}>
+          <View style={{ width: `${progress}%`, height: '100%', borderRadius: radii.pill, backgroundColor: progress === 100 ? colors.success : colors.primary }} />
         </View>
-        <Text style={{ marginTop: 4, fontSize: 11, color: '#6b7280' }}>{progress}% complete</Text>
+        <Text style={{ marginTop: 4, fontSize: 11, color: colors.mutedForeground }}>{progress}% complete</Text>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 96 }}>
-        <Text style={{ marginBottom: 8, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', color: '#6b7280' }}>
+        <Text style={{ marginBottom: 8, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', color: colors.mutedForeground }}>
           Checklist
         </Text>
 
-        {data.checklist.map((item) => {
+        {checklist.map((item) => {
           const done = item.status === 'COMPLETED';
           const skipped = item.status === 'SKIPPED';
 
@@ -111,10 +117,10 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
               key={item.id}
               style={{
                 marginBottom: 14,
-                borderRadius: 8,
+                borderRadius: radii.md,
                 borderWidth: 1.5,
-                borderColor: done ? '#10b981' : skipped ? '#cbd5e1' : '#e5e7eb',
-                backgroundColor: done ? '#f0fdf4' : '#ffffff',
+                borderColor: done ? colors.success : skipped ? colors.input : colors.border,
+                backgroundColor: done ? colors.successMuted : colors.card,
                 padding: 16,
               }}
             >
@@ -122,7 +128,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                 style={{
                   fontSize: 16,
                   fontWeight: '800',
-                  color: skipped ? '#64748b' : '#0f172a',
+                  color: skipped ? colors.mutedForeground : colors.foreground,
                   marginBottom: 12,
                 }}
               >
@@ -132,40 +138,42 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <TouchableOpacity
                   onPress={() => updateItem(item, done ? 'WAITING' : 'COMPLETED')}
-                  disabled={updateChecklist.isPending}
                   style={{
                     flex: 1,
                     height: 44,
-                    borderRadius: 10,
-                    backgroundColor: done ? '#10b981' : '#18b981',
+                    borderRadius: radii.lg,
+                    backgroundColor: done ? colors.success : colors.primary,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: updateChecklist.isPending ? 0.65 : 1,
                   }}
                 >
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#ffffff' }}>
-                    {done ? 'Completed' : 'Complete'}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Icon name="check" size={16} color={colors.primaryForeground} strokeWidth={2.5} />
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
+                      {done ? 'Completed' : 'Complete'}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => updateItem(item, skipped ? 'WAITING' : 'SKIPPED')}
-                  disabled={updateChecklist.isPending}
                   style={{
                     flex: 1,
                     height: 44,
-                    borderRadius: 10,
+                    borderRadius: radii.lg,
                     borderWidth: 1.5,
-                    borderColor: skipped ? '#94a3b8' : '#d1d5db',
-                    backgroundColor: skipped ? '#f1f5f9' : '#f9fafb',
+                    borderColor: skipped ? colors.mutedForeground : colors.input,
+                    backgroundColor: skipped ? colors.muted : colors.card,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: updateChecklist.isPending ? 0.65 : 1,
                   }}
                 >
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748b' }}>
-                    {skipped ? 'Skipped' : 'Skip'}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Icon name="skip" size={15} color={colors.mutedForeground} />
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: colors.mutedForeground }}>
+                      {skipped ? 'Skipped' : 'Skip'}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -180,14 +188,17 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
             height: 48,
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 999,
-            backgroundColor: '#2563eb',
+            borderRadius: radii.pill,
+            backgroundColor: colors.primary,
             opacity: updateStatus.isPending || hasWaitingItems ? 0.45 : 1,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '800', color: '#ffffff' }}>
-            {updateStatus.isPending ? 'Saving...' : 'Complete cleaning'}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
+            <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
+              {updateStatus.isPending ? 'Saving...' : 'Complete cleaning'}
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -197,13 +208,16 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
             height: 48,
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 999,
+            borderRadius: radii.pill,
             borderWidth: 1.5,
-            borderColor: '#d1d5db',
-            backgroundColor: '#f9fafb',
+            borderColor: colors.input,
+            backgroundColor: colors.card,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>Report an Issue</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Icon name="alert-circle" size={17} color={colors.foreground} />
+            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.foreground }}>Report an Issue</Text>
+          </View>
         </TouchableOpacity>
       </ScrollView>
 

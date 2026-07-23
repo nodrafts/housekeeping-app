@@ -25,6 +25,7 @@ interface UpdateChecklistPayload {
 interface UpdateStatusPayload {
   assignmentId: string;
   status: RoomStatus;
+  checklist?: ChecklistItem[];
 }
 
 function backendTaskStatus(status: RoomStatus) {
@@ -76,9 +77,10 @@ export function useUpdateStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ assignmentId, status }: UpdateStatusPayload) => {
+    mutationFn: async ({ assignmentId, status, checklist }: UpdateStatusPayload) => {
       const updatedTask = await updateTask(Number(assignmentId), {
         status: backendTaskStatus(status),
+        ...(checklist ? { checklist: mapChecklistToTaskChecklist(checklist) } : {}),
       });
       return mapTaskToAssignment(updatedTask);
     },

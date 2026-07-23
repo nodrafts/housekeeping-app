@@ -11,8 +11,8 @@ interface ButtonProps extends PressableProps {
 export function Button({ children, variant = 'default', className, ...props }: ButtonProps) {
   const base = 'flex-row items-center justify-center';
   const variants = {
-    default: 'bg-blue-600',
-    outline: 'border border-slate-300 bg-transparent',
+    default: 'bg-slate-900',
+    outline: 'border border-slate-300 bg-white',
   } as const;
 
   return (
@@ -21,7 +21,7 @@ export function Button({ children, variant = 'default', className, ...props }: B
       {...props}
     >
       {typeof children === 'string' ? (
-        <Text className={variant === 'default' ? 'text-white' : 'text-slate-900'}>
+        <Text className={variant === 'default' ? 'font-semibold text-white' : 'font-semibold text-slate-900'}>
           {children}
         </Text>
       ) : (

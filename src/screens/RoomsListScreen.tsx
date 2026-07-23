@@ -11,11 +11,13 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../navigation/types';
 import { Screen } from '../components/layout/Screen';
+import { Icon } from '../components/ui/Icon';
 import { useAssignments } from '../modules/housekeeping/useAssignments';
 import { useAuth } from '../modules/auth/useAuth';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { useAllIncidents, getOpenIncidentsForRoom } from '../modules/housekeeping/useIncidents';
 import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
+import { colors, radii } from '../lib/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'RoomsList'> | any;
 
@@ -99,15 +101,19 @@ export function RoomsListScreen({ navigation }: Props) {
           paddingTop: 12,
           paddingBottom: 14,
           borderBottomWidth: 1,
-          borderBottomColor: '#e5e7eb',
-          backgroundColor: '#ffffff',
+          borderBottomColor: colors.border,
+          backgroundColor: colors.card,
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: '#0f172a' }}>Schedule</Text>
-            <TouchableOpacity onPress={openCalendar} style={{ marginTop: 6, alignSelf: 'flex-start' }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#2563eb' }}>
+            <Text style={{ fontSize: 22, fontWeight: '800', color: colors.foreground }}>Schedule</Text>
+            <TouchableOpacity
+              onPress={openCalendar}
+              style={{ marginTop: 6, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6 }}
+            >
+              <Icon name="calendar" size={15} color={colors.primary} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>
                 {selectedDateLabel(selectedDate)}  {selectedDate}
               </Text>
             </TouchableOpacity>
@@ -119,13 +125,13 @@ export function RoomsListScreen({ navigation }: Props) {
               maxWidth: 132,
               paddingHorizontal: 12,
               paddingVertical: 8,
-              borderRadius: 999,
+              borderRadius: radii.pill,
               borderWidth: 1,
-              borderColor: '#d1d5db',
-              backgroundColor: '#f9fafb',
+              borderColor: colors.input,
+              backgroundColor: colors.secondary,
             }}
           >
-            <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: '700', color: '#374151' }}>
+            <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: '700', color: colors.foreground }}>
               {selectedHotel?.name ?? hotelCode}
             </Text>
           </TouchableOpacity>
@@ -147,14 +153,14 @@ export function RoomsListScreen({ navigation }: Props) {
             <View
               style={{
                 padding: 20,
-                borderRadius: 8,
+                borderRadius: radii.md,
                 borderWidth: 1,
-                borderColor: '#e5e7eb',
-                backgroundColor: '#ffffff',
+                borderColor: colors.border,
+                backgroundColor: colors.card,
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#0f172a' }}>No rooms due</Text>
-              <Text style={{ marginTop: 4, fontSize: 13, color: '#6b7280' }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.foreground }}>No rooms due</Text>
+              <Text style={{ marginTop: 4, fontSize: 13, color: colors.mutedForeground }}>
                 {selectedDateLabel(selectedDate)} has no House keeping tasks for {hotelCode}.
               </Text>
             </View>
@@ -171,19 +177,19 @@ export function RoomsListScreen({ navigation }: Props) {
                 activeOpacity={0.78}
                 style={{
                   marginBottom: 12,
-                  borderRadius: 8,
+                  borderRadius: radii.md,
                   borderWidth: 1.5,
-                  borderColor: done ? '#10b981' : inProgress ? '#f59e0b' : '#d1d5db',
-                  backgroundColor: '#ffffff',
+                  borderColor: done ? colors.success : inProgress ? colors.warning : colors.input,
+                  backgroundColor: colors.card,
                   padding: 14,
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View style={{ flex: 1, paddingRight: 12 }}>
-                    <Text style={{ fontSize: 20, fontWeight: '800', color: '#0f172a' }}>
+                    <Text style={{ fontSize: 20, fontWeight: '800', color: colors.foreground }}>
                       Room {item.roomNumber}
                     </Text>
-                    <Text style={{ marginTop: 2, fontSize: 13, color: '#6b7280' }}>
+                    <Text style={{ marginTop: 2, fontSize: 13, color: colors.mutedForeground }}>
                       {item.floor ? `Floor ${item.floor}` : 'Floor not set'}
                       {item.type ? ` - ${item.type}` : ''}
                     </Text>
@@ -192,21 +198,21 @@ export function RoomsListScreen({ navigation }: Props) {
                     style={{
                       paddingHorizontal: 9,
                       paddingVertical: 5,
-                      borderRadius: 999,
-                      backgroundColor: done ? '#d1fae5' : inProgress ? '#fef3c7' : '#eff6ff',
+                      borderRadius: radii.pill,
+                      backgroundColor: done ? '#d1fae5' : inProgress ? '#fef3c7' : colors.muted,
                     }}
                   >
-                    <Text style={{ fontSize: 11, fontWeight: '800', color: done ? '#065f46' : inProgress ? '#92400e' : '#1d4ed8' }}>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: done ? '#065f46' : inProgress ? '#92400e' : colors.foreground }}>
                       {done ? 'DONE' : inProgress ? 'STARTED' : 'OPEN'}
                     </Text>
                   </View>
                 </View>
 
-                <View style={{ marginTop: 12, height: 7, borderRadius: 999, overflow: 'hidden', backgroundColor: '#e5e7eb' }}>
-                  <View style={{ width: `${progress}%`, height: '100%', borderRadius: 999, backgroundColor: done ? '#10b981' : '#2563eb' }} />
+                <View style={{ marginTop: 12, height: 7, borderRadius: radii.pill, overflow: 'hidden', backgroundColor: colors.border }}>
+                  <View style={{ width: `${progress}%`, height: '100%', borderRadius: radii.pill, backgroundColor: done ? colors.success : colors.primary }} />
                 </View>
                 <View style={{ marginTop: 8, flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 12, color: '#6b7280' }}>{progress}% complete</Text>
+                  <Text style={{ fontSize: 12, color: colors.mutedForeground }}>{progress}% complete</Text>
                   {openIncidents.length > 0 ? (
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#f97316' }}>
                       {openIncidents.length} issue{openIncidents.length === 1 ? '' : 's'}
@@ -225,24 +231,24 @@ export function RoomsListScreen({ navigation }: Props) {
           onPress={() => setCalendarOpen(false)}
         >
           <View
-            style={{ borderRadius: 12, backgroundColor: '#ffffff', padding: 16 }}
+            style={{ borderRadius: radii.xl, backgroundColor: colors.card, padding: 16 }}
             onStartShouldSetResponder={() => true}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <TouchableOpacity onPress={() => setVisibleMonth((date) => addMonths(date, -1))} style={{ padding: 8 }}>
-                <Text style={{ fontSize: 18, color: '#2563eb' }}>{'<'}</Text>
+                <Text style={{ fontSize: 18, color: colors.primary }}>{'<'}</Text>
               </TouchableOpacity>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0f172a' }}>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: colors.foreground }}>
                 {visibleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
               </Text>
               <TouchableOpacity onPress={() => setVisibleMonth((date) => addMonths(date, 1))} style={{ padding: 8 }}>
-                <Text style={{ fontSize: 18, color: '#2563eb' }}>{'>'}</Text>
+                <Text style={{ fontSize: 18, color: colors.primary }}>{'>'}</Text>
               </TouchableOpacity>
             </View>
 
             <View style={{ flexDirection: 'row', marginBottom: 6 }}>
               {DAYS.map((day) => (
-                <Text key={day} style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '800', color: '#6b7280' }}>
+                <Text key={day} style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '800', color: colors.mutedForeground }}>
                   {day}
                 </Text>
               ))}
@@ -266,11 +272,11 @@ export function RoomsListScreen({ navigation }: Props) {
                         height: 38,
                         alignItems: 'center',
                         justifyContent: 'center',
-                        borderRadius: 999,
-                        backgroundColor: active ? '#2563eb' : 'transparent',
+                        borderRadius: radii.pill,
+                        backgroundColor: active ? colors.primary : 'transparent',
                       }}
                     >
-                      <Text style={{ fontSize: 14, fontWeight: active ? '800' : '600', color: active ? '#ffffff' : '#374151' }}>
+                      <Text style={{ fontSize: 14, fontWeight: active ? '800' : '600', color: active ? colors.primaryForeground : colors.foreground }}>
                         {day ?? ''}
                       </Text>
                     </View>
