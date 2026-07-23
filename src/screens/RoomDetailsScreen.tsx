@@ -193,7 +193,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
             <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
-              {updateStatus.isPending ? 'Saving...' : 'Mark room clean'}
+              {updateStatus.isPending ? 'Saving...' : 'Mark room as cleaned'}
             </Text>
           </View>
         </TouchableOpacity>

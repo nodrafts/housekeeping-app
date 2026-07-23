@@ -3,7 +3,9 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
+  Platform,
   Pressable,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -98,7 +100,7 @@ export function RoomsListScreen({ navigation }: Props) {
       <View
         style={{
           paddingHorizontal: 16,
-          paddingTop: 12,
+          paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 10 : 12,
           paddingBottom: 14,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
