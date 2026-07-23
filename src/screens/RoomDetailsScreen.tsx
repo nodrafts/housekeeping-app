@@ -117,6 +117,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
         {checklist.map((item, index) => {
           const done = item.status === 'COMPLETED';
           const skipped = item.status === 'SKIPPED';
+          const handled = done || skipped;
 
           return (
             <View
@@ -125,7 +126,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                 marginBottom: 14,
                 borderRadius: radii.md,
                 borderWidth: 1.5,
-                borderColor: done || skipped ? colors.primary : colors.border,
+                borderColor: colors.border,
                 backgroundColor: colors.card,
                 padding: 14,
               }}
@@ -139,14 +140,14 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                     height: 26,
                     borderRadius: radii.sm,
                     borderWidth: 1.5,
-                    borderColor: done ? colors.primary : colors.input,
-                    backgroundColor: done ? colors.primary : colors.card,
+                    borderColor: handled ? colors.primary : colors.input,
+                    backgroundColor: handled ? colors.primary : colors.card,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginTop: 1,
                   }}
                 >
-                  {done ? <Icon name="check" size={16} color={colors.primaryForeground} strokeWidth={2.5} /> : null}
+                  {handled ? <Icon name="check" size={16} color={colors.primaryForeground} strokeWidth={2.5} /> : null}
                 </TouchableOpacity>
 
                 <View style={{ flex: 1 }}>
@@ -175,17 +176,14 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                     borderRadius: radii.lg,
                     borderWidth: 1.5,
                     borderColor: done ? colors.primary : colors.input,
-                    backgroundColor: done ? colors.primary : colors.card,
+                    backgroundColor: done ? colors.selected : colors.card,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Icon name="check" size={16} color={done ? colors.primaryForeground : colors.foreground} strokeWidth={2.5} />
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: done ? colors.primaryForeground : colors.foreground }}>
-                      Done
-                    </Text>
-                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: done ? colors.primary : colors.foreground }}>
+                    Done
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -196,17 +194,14 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                     borderRadius: radii.lg,
                     borderWidth: 1.5,
                     borderColor: skipped ? colors.primary : colors.input,
-                    backgroundColor: skipped ? colors.muted : colors.card,
+                    backgroundColor: skipped ? colors.selected : colors.card,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Icon name="skip" size={15} color={colors.mutedForeground} />
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: colors.mutedForeground }}>
-                      Skip
-                    </Text>
-                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: skipped ? colors.primary : colors.foreground }}>
+                    Skip
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
