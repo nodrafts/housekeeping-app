@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { addLocalIncident } from '../modules/housekeeping/useIncidents';
 import { getApiErrorMessage } from '../lib/api';
@@ -54,9 +55,8 @@ function fileNameFor(asset: ImagePicker.ImagePickerAsset, index: number) {
 async function attachmentFromAsset(asset: ImagePicker.ImagePickerAsset, index: number): Promise<IncidentAttachment> {
   let fileSize = asset.fileSize ?? 0;
   if (!fileSize) {
-    const response = await fetch(asset.uri);
-    const blob = await response.blob();
-    fileSize = blob.size;
+    const info = await FileSystem.getInfoAsync(asset.uri);
+    fileSize = info.exists ? info.size : 0;
   }
 
   if (fileSize <= 0) {

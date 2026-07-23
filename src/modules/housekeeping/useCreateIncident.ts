@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import * as FileSystem from 'expo-file-system/legacy';
 import { api } from '../../lib/api';
 
 export type IncidentCategory =
@@ -116,17 +117,16 @@ export async function uploadIncidentImages(
   await Promise.all(
     uploadUrls.map(async (info, index) => {
       const image = attachments[index];
-      const localResponse = await fetch(image.uri);
-      const blob = await localResponse.blob();
-      const uploadResponse = await fetch(info.uploadUrl, {
-        method: 'PUT',
+      const uploadResponse = await FileSystem.uploadAsync(info.uploadUrl, image.uri, {
+        httpMethod: 'PUT',
+        uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+        sessionType: FileSystem.FileSystemSessionType.FOREGROUND,
         headers: {
           'Content-Type': info.contentType || image.contentType,
         },
-        body: blob,
       });
 
-      if (!uploadResponse.ok) {
+      if (uploadResponse.status < 200 || uploadResponse.status >= 300) {
         throw new Error(`Could not upload ${info.fileName || image.fileName}.`);
       }
     }),
