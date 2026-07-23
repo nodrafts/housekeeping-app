@@ -34,12 +34,6 @@ function setChecklistStatus(checklist: ChecklistItem[], itemId: string, status: 
   ));
 }
 
-function statusLabel(item: ChecklistItem) {
-  if (item.status === 'COMPLETED') return 'Done';
-  if (item.status === 'SKIPPED') return 'Skipped';
-  return 'Pending';
-}
-
 export function RoomDetailsScreen({ route, navigation }: Props) {
   const { assignmentId } = route.params;
   const { selectedHotel } = useHotelStore();
@@ -117,7 +111,6 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
         {checklist.map((item, index) => {
           const done = item.status === 'COMPLETED';
           const skipped = item.status === 'SKIPPED';
-          const handled = done || skipped;
 
           return (
             <View
@@ -131,41 +124,17 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                 padding: 14,
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                <TouchableOpacity
-                  onPress={() => updateItem(item, done ? 'WAITING' : 'COMPLETED')}
-                  activeOpacity={0.72}
-                  style={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: radii.sm,
-                    borderWidth: 1.5,
-                    borderColor: handled ? colors.primary : colors.input,
-                    backgroundColor: handled ? colors.primary : colors.card,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginTop: 1,
-                  }}
-                >
-                  {handled ? <Icon name="check" size={16} color={colors.primaryForeground} strokeWidth={2.5} /> : null}
-                </TouchableOpacity>
-
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      lineHeight: 21,
-                      fontWeight: '800',
-                      color: skipped ? colors.mutedForeground : colors.foreground,
-                    }}
-                  >
-                    {item.label}
-                  </Text>
-                  <Text style={{ marginTop: 2, fontSize: 12, fontWeight: '600', color: colors.mutedForeground }}>
-                    {statusLabel(item)}
-                  </Text>
-                </View>
-              </View>
+              <Text
+                style={{
+                  marginBottom: 12,
+                  fontSize: 15,
+                  lineHeight: 21,
+                  fontWeight: '800',
+                  color: skipped ? colors.mutedForeground : colors.foreground,
+                }}
+              >
+                {item.label}
+              </Text>
 
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <TouchableOpacity
