@@ -29,6 +29,13 @@ const TAB_BAR_STYLE = {
   paddingTop: 7,
 };
 
+const TAB_TRANSITION = {
+  animation: 'timing' as const,
+  config: {
+    duration: 180,
+  },
+};
+
 function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
   return <Icon name={name} size={22} color={focused ? colors.primary : colors.mutedForeground} />;
 }
@@ -58,7 +65,13 @@ function StaffTabNavigator() {
         tabBarStyle: TAB_BAR_STYLE,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
+        tabBarHideOnKeyboard: true,
         headerShown: false,
+        sceneStyle: { backgroundColor: colors.background },
+        lazy: false,
+        freezeOnBlur: true,
+        animation: 'shift',
+        transitionSpec: TAB_TRANSITION,
       }}
     >
       <StaffTab.Screen
@@ -97,7 +110,13 @@ function AdminTabNavigator() {
         tabBarStyle: TAB_BAR_STYLE,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
+        tabBarHideOnKeyboard: true,
         headerShown: false,
+        sceneStyle: { backgroundColor: colors.background },
+        lazy: false,
+        freezeOnBlur: true,
+        animation: 'shift',
+        transitionSpec: TAB_TRANSITION,
       }}
     >
       <AdminTab.Screen
@@ -145,7 +164,15 @@ function AppNavigator() {
     <AppStack.Navigator
       id="AppStack"
       initialRouteName={isAdmin ? 'AdminTabs' : 'StaffTabs'}
-      screenOptions={{ headerShadowVisible: false, headerTitleAlign: 'left' }}
+      screenOptions={{
+        headerShadowVisible: false,
+        headerTitleAlign: 'left',
+        animation: 'slide_from_right',
+        animationDuration: 220,
+        gestureEnabled: true,
+        fullScreenGestureEnabled: true,
+        contentStyle: { backgroundColor: colors.background },
+      }}
     >
       {isAdmin ? (
         <AppStack.Screen
@@ -173,7 +200,7 @@ function AppNavigator() {
       <AppStack.Screen
         name="HotelSelect"
         component={HotelSelectScreen}
-        options={{ headerShown: false, presentation: 'transparentModal', animation: 'fade' }}
+        options={{ headerShown: false, presentation: 'transparentModal', animation: 'fade', animationDuration: 180 }}
       />
       <AppStack.Screen
         name="ReportIssue"
@@ -191,7 +218,15 @@ export function RootNavigator() {
 
   if (!user) {
     return (
-      <AuthStack.Navigator id="AuthStack" screenOptions={{ headerShown: false }}>
+      <AuthStack.Navigator
+        id="AuthStack"
+        screenOptions={{
+          headerShown: false,
+          animation: 'fade',
+          animationDuration: 180,
+          contentStyle: { backgroundColor: colors.card },
+        }}
+      >
         <AuthStack.Screen name="Login" component={LoginScreen} />
       </AuthStack.Navigator>
     );

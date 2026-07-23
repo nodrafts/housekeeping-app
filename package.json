@@ -27,6 +27,7 @@
     "buffer": "^6.0.3",
     "events": "^3.3.0",
     "expo": "~57.0.7",
+    "expo-image-picker": "~57.0.6",
     "expo-status-bar": "~57.0.1",
     "nativewind": "^4.2.2",
     "path-browserify": "^1.0.1",
