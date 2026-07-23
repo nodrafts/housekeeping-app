@@ -34,7 +34,7 @@ export interface ReportIssueModalProps {
 
 const ISSUE_TYPES = ['Broken item', 'Missing item', 'Needs repair', 'Safety concern', 'Other'];
 const SEVERITIES: IncidentSeverity[] = ['LOW', 'MEDIUM', 'HIGH'];
-const MAX_ATTACHMENTS = 4;
+const MAX_ATTACHMENTS = 10;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 function inferContentType(asset: ImagePicker.ImagePickerAsset) {
