@@ -4,15 +4,15 @@ export type AuthStackParamList = {
 
 // Bottom tab param lists
 export type StaffTabParamList = {
-  Home: undefined;
-  Calendar: undefined;
+  Housekeeping: undefined;
+  Schedule: undefined;
   Settings: undefined;
   Profile: undefined;
 };
 
 export type AdminTabParamList = {
-  Home: undefined;
-  Calendar: undefined;
+  Housekeeping: undefined;
+  Schedule: undefined;
   Settings: undefined;
   Profile: undefined;
 };
