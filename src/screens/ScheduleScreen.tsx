@@ -19,7 +19,6 @@ import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 import { useAuth } from '../modules/auth/useAuth';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
 import {
-  useAcceptStaffSchedule,
   useAvailableSwapEmployees,
   useCreateScheduleSwap,
   useStaffSchedules,
@@ -254,17 +253,15 @@ export function ScheduleScreen({ navigation }: any) {
   const { user } = useAuth();
   const { selectedHotel } = useHotelStore();
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
-  const [viewMode, setViewMode] = useState<ScheduleViewMode>('day');
+  const [viewMode, setViewMode] = useState<ScheduleViewMode>('week');
   const [selectedDate, setSelectedDate] = useState(dateToInput(new Date()));
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [modeOpen, setModeOpen] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(inputToDate(selectedDate));
-  const [acceptedScheduleIds, setAcceptedScheduleIds] = useState<Set<number>>(new Set());
   const [pendingSwapScheduleIds, setPendingSwapScheduleIds] = useState<Set<number>>(new Set());
   const [targetEmployeeId, setTargetEmployeeId] = useState<string | null>(null);
   const [swapError, setSwapError] = useState<string | null>(null);
-  const [scheduleActionError, setScheduleActionError] = useState<string | null>(null);
 
   const selectedDateObject = inputToDate(selectedDate);
   const weekStart = startOfWeek(selectedDateObject);
@@ -279,7 +276,6 @@ export function ScheduleScreen({ navigation }: any) {
     enabled: !!user?.id,
   });
 
-  const acceptSchedule = useAcceptStaffSchedule();
   const createSwap = useCreateScheduleSwap();
 
   const schedules = useMemo(
@@ -307,9 +303,6 @@ export function ScheduleScreen({ navigation }: any) {
     enabled: swapOpen && !!currentSchedule,
   });
 
-  const canAccept = viewMode === 'day' && daySchedules.some((schedule) =>
-    schedule.status === 'Published' && !acceptedScheduleIds.has(schedule.id) && !pendingSwapScheduleIds.has(schedule.id),
-  );
   const canSwap = viewMode === 'day' && !!currentSchedule && currentSchedule.status === 'Published';
 
   const openCalendar = () => {
@@ -329,27 +322,6 @@ export function ScheduleScreen({ navigation }: any) {
 
   const changeWeek = (delta: number) => {
     setSelectedDate(dateToInput(addDays(weekStart, delta * 7)));
-  };
-
-  const acceptPublishedSchedules = async () => {
-    const schedulesToAccept = daySchedules.filter((schedule) =>
-      schedule.status === 'Published' && !acceptedScheduleIds.has(schedule.id) && !pendingSwapScheduleIds.has(schedule.id),
-    );
-    if (schedulesToAccept.length === 0) return;
-
-    try {
-      setScheduleActionError(null);
-      const accepted = await Promise.all(
-        schedulesToAccept.map((schedule) => acceptSchedule.mutateAsync(schedule.id)),
-      );
-      setAcceptedScheduleIds((current) => {
-        const next = new Set(current);
-        accepted.forEach((schedule) => next.add(schedule.id));
-        return next;
-      });
-    } catch (error) {
-      setScheduleActionError(getApiErrorMessage(error));
-    }
   };
 
   const openSwap = () => {
@@ -390,7 +362,7 @@ export function ScheduleScreen({ navigation }: any) {
     width?: number,
     compact = false,
   ) => {
-    const accepted = acceptedScheduleIds.has(schedule.id) || schedule.status === 'Accepted';
+    const accepted = schedule.status === 'Accepted';
     const pendingSwap = pendingSwapScheduleIds.has(schedule.id);
     const status = shiftStatus(schedule, accepted, pendingSwap);
     const card = shiftCardColors(accepted, pendingSwap);
@@ -804,46 +776,24 @@ export function ScheduleScreen({ navigation }: any) {
             </View>
           </View>
 
-          {(canAccept || canSwap) ? (
+          {canSwap ? (
             <View style={{ marginTop: 10, flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
-              {canAccept ? (
-                <TouchableOpacity
-                  onPress={acceptPublishedSchedules}
-                  disabled={acceptSchedule.isPending}
-                  style={{
-                    height: 34,
-                    borderRadius: radii.pill,
-                    paddingHorizontal: 14,
-                    backgroundColor: '#16a34a',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: acceptSchedule.isPending ? 0.68 : 1,
-                  }}
-                  activeOpacity={0.75}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#ffffff' }}>
-                    {acceptSchedule.isPending ? 'Saving' : 'Accept'}
-                  </Text>
-                </TouchableOpacity>
-              ) : null}
-              {canSwap ? (
-                <TouchableOpacity
-                  onPress={openSwap}
-                  style={{
-                    height: 34,
-                    borderRadius: radii.pill,
-                    borderWidth: 1,
-                    borderColor: colors.primary,
-                    paddingHorizontal: 18,
-                    backgroundColor: colors.selected,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  activeOpacity={0.75}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>Swap</Text>
-                </TouchableOpacity>
-              ) : null}
+              <TouchableOpacity
+                onPress={openSwap}
+                style={{
+                  height: 34,
+                  borderRadius: radii.pill,
+                  borderWidth: 1,
+                  borderColor: colors.primary,
+                  paddingHorizontal: 18,
+                  backgroundColor: colors.selected,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                activeOpacity={0.75}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>Swap</Text>
+              </TouchableOpacity>
             </View>
           ) : null}
 
@@ -905,11 +855,6 @@ export function ScheduleScreen({ navigation }: any) {
             </View>
           ) : null}
 
-          {scheduleActionError ? (
-            <Text style={{ marginTop: 10, fontSize: 12, color: colors.destructive }}>
-              {scheduleActionError}
-            </Text>
-          ) : null}
         </View>
 
         <View
