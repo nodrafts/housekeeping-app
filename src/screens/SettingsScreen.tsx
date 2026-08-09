@@ -29,13 +29,13 @@ export function SettingsScreen() {
       </View>
 
       <TouchableOpacity
-        onPress={() => Alert.alert('Sign out', 'Are you sure?', [
+        onPress={() => Alert.alert('Logout', 'Are you sure?', [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Sign out', style: 'destructive', onPress: logout },
+          { text: 'Logout', style: 'destructive', onPress: logout },
         ])}
         style={{ backgroundColor: '#fff1f2', borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#fecaca' }}
       >
-        <Text style={{ fontSize: 14, fontWeight: '600', color: '#b91c1c' }}>Sign out</Text>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: '#b91c1c' }}>Logout</Text>
       </TouchableOpacity>
     </ScrollView>
   );

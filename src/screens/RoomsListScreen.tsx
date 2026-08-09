@@ -1,10 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Modal,
   Platform,
-  Pressable,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -23,47 +21,11 @@ import { colors, radii } from '../lib/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'RoomsList'> | any;
 
-const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
 function dateToInput(value: Date) {
   const year = value.getFullYear();
   const month = String(value.getMonth() + 1).padStart(2, '0');
   const day = String(value.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-}
-
-function inputToDate(value: string) {
-  return new Date(`${value}T00:00:00`);
-}
-
-function addMonths(value: Date, delta: number) {
-  return new Date(value.getFullYear(), value.getMonth() + delta, 1);
-}
-
-function monthCells(monthDate: Date) {
-  const year = monthDate.getFullYear();
-  const month = monthDate.getMonth();
-  const first = new Date(year, month, 1);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells: Array<number | null> = [];
-
-  for (let i = 0; i < first.getDay(); i += 1) {
-    cells.push(null);
-  }
-  for (let day = 1; day <= daysInMonth; day += 1) {
-    cells.push(day);
-  }
-  while (cells.length % 7 !== 0) {
-    cells.push(null);
-  }
-  return cells;
-}
-
-function selectedDateLabel(dateInput: string) {
-  const date = inputToDate(dateInput);
-  const today = dateToInput(new Date());
-  if (dateInput === today) return 'Today';
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 function progressFor(checklist: { done: boolean; skipped?: boolean }[]) {
@@ -76,24 +38,9 @@ export function RoomsListScreen({ navigation }: Props) {
   const { user } = useAuth();
   const { selectedHotel } = useHotelStore();
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
-  const [selectedDate, setSelectedDate] = useState(dateToInput(new Date()));
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [visibleMonth, setVisibleMonth] = useState(inputToDate(selectedDate));
+  const [selectedDate] = useState(dateToInput(new Date()));
   const { data = [], isLoading, refetch, isFetching } = useAssignments(hotelCode, selectedDate);
   const { data: allIncidents = [] } = useAllIncidents(hotelCode);
-
-  const cells = useMemo(() => monthCells(visibleMonth), [visibleMonth]);
-
-  const openCalendar = () => {
-    setVisibleMonth(inputToDate(selectedDate));
-    setCalendarOpen(true);
-  };
-
-  const chooseDate = (day: number) => {
-    const next = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day);
-    setSelectedDate(dateToInput(next));
-    setCalendarOpen(false);
-  };
 
   return (
     <Screen>
@@ -109,16 +56,13 @@ export function RoomsListScreen({ navigation }: Props) {
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: colors.foreground }}>Schedule</Text>
-            <TouchableOpacity
-              onPress={openCalendar}
-              style={{ marginTop: 6, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6 }}
-            >
-              <Icon name="calendar" size={15} color={colors.primary} />
+            <Text style={{ fontSize: 22, fontWeight: '800', color: colors.foreground }}>Housekeeping</Text>
+            <View style={{ marginTop: 6, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Icon name="sparkles" size={15} color={colors.primary} />
               <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>
-                {selectedDateLabel(selectedDate)}  {selectedDate}
+                Today {selectedDate}
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
 
           <TouchableOpacity
@@ -163,7 +107,7 @@ export function RoomsListScreen({ navigation }: Props) {
             >
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.foreground }}>No rooms due</Text>
               <Text style={{ marginTop: 4, fontSize: 13, color: colors.mutedForeground }}>
-                {selectedDateLabel(selectedDate)} has no House keeping tasks for {hotelCode}.
+                Today has no housekeeping tasks for {hotelCode}.
               </Text>
             </View>
           }
@@ -226,69 +170,6 @@ export function RoomsListScreen({ navigation }: Props) {
           }}
         />
       )}
-
-      <Modal visible={calendarOpen} transparent animationType="fade" onRequestClose={() => setCalendarOpen(false)}>
-        <Pressable
-          style={{ flex: 1, justifyContent: 'center', padding: 24, backgroundColor: 'rgba(0,0,0,0.4)' }}
-          onPress={() => setCalendarOpen(false)}
-        >
-          <View
-            style={{ borderRadius: radii.xl, backgroundColor: colors.card, padding: 16 }}
-            onStartShouldSetResponder={() => true}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <TouchableOpacity onPress={() => setVisibleMonth((date) => addMonths(date, -1))} style={{ padding: 8 }}>
-                <Text style={{ fontSize: 18, color: colors.primary }}>{'<'}</Text>
-              </TouchableOpacity>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: colors.foreground }}>
-                {visibleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-              </Text>
-              <TouchableOpacity onPress={() => setVisibleMonth((date) => addMonths(date, 1))} style={{ padding: 8 }}>
-                <Text style={{ fontSize: 18, color: colors.primary }}>{'>'}</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={{ flexDirection: 'row', marginBottom: 6 }}>
-              {DAYS.map((day) => (
-                <Text key={day} style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '800', color: colors.mutedForeground }}>
-                  {day}
-                </Text>
-              ))}
-            </View>
-
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {cells.map((day, index) => {
-                const dateInput = day
-                  ? dateToInput(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day))
-                  : '';
-                const active = dateInput === selectedDate;
-                return (
-                  <TouchableOpacity
-                    key={`${index}-${day ?? 'blank'}`}
-                    disabled={!day}
-                    onPress={() => day && chooseDate(day)}
-                    style={{ width: `${100 / 7}%`, padding: 4 }}
-                  >
-                    <View
-                      style={{
-                        height: 38,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: radii.pill,
-                        backgroundColor: active ? colors.primary : 'transparent',
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, fontWeight: active ? '800' : '600', color: active ? colors.primaryForeground : colors.foreground }}>
-                        {day ?? ''}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        </Pressable>
-      </Modal>
     </Screen>
   );
 }

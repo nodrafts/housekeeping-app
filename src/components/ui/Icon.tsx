@@ -15,6 +15,7 @@ export type IconName =
   | 'home'
   | 'settings'
   | 'skip'
+  | 'sparkles'
   | 'user';
 
 interface IconProps extends SvgProps {
@@ -83,6 +84,14 @@ export function Icon({
         </>
       ) : null}
 
+      {name === 'sparkles' ? (
+        <>
+          <Path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" />
+          <Path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14Z" />
+          <Path d="M5 13l.8 1.7L7.5 15.5l-1.7.8L5 18l-.8-1.7-1.7-.8 1.7-.8L5 13Z" />
+        </>
+      ) : null}
+
       {name === 'alert-circle' ? (
         <>
           <Circle cx="12" cy="12" r="10" />
@@ -93,4 +102,3 @@ export function Icon({
     </Svg>
   );
 }
-

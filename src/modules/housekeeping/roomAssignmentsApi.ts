@@ -2,7 +2,7 @@ import type { Task, TaskChecklistItem } from '../tasks/types';
 import { getTask, listTasks } from '../tasks/taskApi';
 import type { ChecklistItem, RoomAssignment, RoomStatus } from './types';
 
-export const HOUSEKEEPING_TASK_TYPE = 'House keeping';
+export const HOUSEKEEPING_TASK_TYPE = 'HOUSEKEEPING';
 
 export const assignmentsKey = (hotelCode?: string, dueDate?: string) => [
   'assignments',

@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthStackParamList, AppStackParamList, StaffTabParamList, AdminTabParamList } from './types';
 import { LoginScreen } from '../screens/LoginScreen';
 import { RoomsListScreen } from '../screens/RoomsListScreen';
+import { ScheduleScreen } from '../screens/ScheduleScreen';
 import { RoomDetailsScreen } from '../screens/RoomDetailsScreen';
 import { ReportIssueScreen } from '../screens/ReportIssueScreen';
 import { HotelSelectScreen } from '../screens/HotelSelectScreen';
@@ -60,11 +61,12 @@ function StaffTabNavigator() {
   return (
     <StaffTab.Navigator
       id="StaffTabs"
-      initialRouteName="Calendar"
+      initialRouteName="Housekeeping"
       screenOptions={{
         tabBarStyle: TAB_BAR_STYLE,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         tabBarHideOnKeyboard: true,
         headerShown: false,
         sceneStyle: { backgroundColor: colors.background },
@@ -75,15 +77,14 @@ function StaffTabNavigator() {
       }}
     >
       <StaffTab.Screen
-        name="Home"
-        children={() => <FrozenTabScreen label="Home" />}
-        listeners={frozenListeners}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />, tabBarLabel: 'Home' }}
+        name="Housekeeping"
+        component={RoomsListScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="sparkles" focused={focused} />, tabBarLabel: 'Housekeeping' }}
       />
       <StaffTab.Screen
-        name="Calendar"
-        component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: 'Calendar' }}
+        name="Schedule"
+        component={ScheduleScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: 'Schedule' }}
       />
       <StaffTab.Screen
         name="Settings"
@@ -105,11 +106,12 @@ function AdminTabNavigator() {
   return (
     <AdminTab.Navigator
       id="AdminTabs"
-      initialRouteName="Calendar"
+      initialRouteName="Housekeeping"
       screenOptions={{
         tabBarStyle: TAB_BAR_STYLE,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         tabBarHideOnKeyboard: true,
         headerShown: false,
         sceneStyle: { backgroundColor: colors.background },
@@ -120,15 +122,14 @@ function AdminTabNavigator() {
       }}
     >
       <AdminTab.Screen
-        name="Home"
-        children={() => <FrozenTabScreen label="Home" />}
-        listeners={frozenListeners}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />, tabBarLabel: 'Home' }}
+        name="Housekeeping"
+        component={RoomsListScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="sparkles" focused={focused} />, tabBarLabel: 'Housekeeping' }}
       />
       <AdminTab.Screen
-        name="Calendar"
-        component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: 'Calendar' }}
+        name="Schedule"
+        component={ScheduleScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: 'Schedule' }}
       />
       <AdminTab.Screen
         name="Settings"
@@ -195,7 +196,7 @@ function AppNavigator() {
       <AppStack.Screen
         name="RoomsList"
         component={RoomsListScreen}
-        options={{ title: 'Schedule' }}
+        options={{ title: 'Housekeeping' }}
       />
       <AppStack.Screen
         name="HotelSelect"

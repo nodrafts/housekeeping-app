@@ -71,6 +71,9 @@ boot-check.png
 # testing
 /coverage
 
+# Expo web static export
+dist-web/
+
 # Yarn
 .yarn/*
 !.yarn/patches
