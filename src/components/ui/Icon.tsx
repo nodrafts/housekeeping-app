@@ -10,6 +10,7 @@ import Svg, {
 
 export type IconName =
   | 'alert-circle'
+  | 'bed'
   | 'calendar'
   | 'check'
   | 'home'
@@ -58,6 +59,18 @@ export function Icon({
           <Line x1="8" y1="2.5" x2="8" y2="6.5" />
           <Line x1="16" y1="2.5" x2="16" y2="6.5" />
           <Line x1="3" y1="10" x2="21" y2="10" />
+        </>
+      ) : null}
+
+      {name === 'bed' ? (
+        <>
+          <Path d="M4 11V5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5V11" />
+          <Path d="M4 21v-8" />
+          <Path d="M20 21v-8" />
+          <Path d="M3 13h18" />
+          <Path d="M5 17h14" />
+          <Path d="M7 11V8h4v3" />
+          <Path d="M13 11V8h4v3" />
         </>
       ) : null}
 

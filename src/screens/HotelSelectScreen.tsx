@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,27 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../navigation/types';
 import { useHotels } from '../modules/hotel/useHotels';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
+import { useAuth } from '../modules/auth/useAuth';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'HotelSelect'>;
 
 export function HotelSelectScreen({ navigation }: Props) {
-  const { data: hotels = [], isLoading, isError, refetch } = useHotels();
+  const { user } = useAuth();
+  const { data: hotels = [], isLoading, isError, refetch } = useHotels(user?.assignedHotels, user?.canAccessAllHotels);
   const { selectedHotel, setSelectedHotel } = useHotelStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [pending, setPending] = useState(selectedHotel);
+
+  useEffect(() => {
+    if (hotels.length === 0) {
+      setPending(null);
+      return;
+    }
+
+    const current = pending ?? selectedHotel;
+    const matched = current ? hotels.find((hotel) => hotel.hotelCode === current.hotelCode) : undefined;
+    setPending(matched ?? hotels[0]);
+  }, [hotels, pending, selectedHotel]);
 
   const handleConfirm = () => {
     if (!pending) return;

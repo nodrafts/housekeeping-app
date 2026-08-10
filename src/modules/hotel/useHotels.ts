@@ -7,7 +7,7 @@ type HotelItem = {
   name: string;
 };
 
-async function fetchHotels(): Promise<HotelItem[]> {
+async function fetchHotels(allowedHotelCodes?: string[], includeAllHotels = false): Promise<HotelItem[]> {
   const res = await api.get(
     `/api/v1/orgs/${DEFAULT_ORG_ID}/hotels`,
   );
@@ -21,14 +21,16 @@ async function fetchHotels(): Promise<HotelItem[]> {
     Array.isArray(payload?.data) ? payload.data :
     Array.isArray(payload?.data?.hotels) ? payload.data.hotels :
     [];
+  const allowed = new Set((allowedHotelCodes ?? []).map((code) => code.toUpperCase()));
   return list
     .filter((h) => h?.hotelCode && h?.name)
+    .filter((h) => includeAllHotels || allowed.has(String(h.hotelCode).toUpperCase()))
     .map((h) => ({ hotelCode: h.hotelCode, name: h.name }));
 }
 
-export function useHotels() {
+export function useHotels(allowedHotelCodes?: string[], includeAllHotels = false) {
   return useQuery({
-    queryKey: ['hotels', DEFAULT_ORG_ID],
-    queryFn: fetchHotels,
+    queryKey: ['hotels', DEFAULT_ORG_ID, includeAllHotels ? 'all' : allowedHotelCodes?.join(',')],
+    queryFn: () => fetchHotels(allowedHotelCodes, includeAllHotels),
   });
 }

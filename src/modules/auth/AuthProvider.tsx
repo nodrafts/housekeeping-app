@@ -24,14 +24,15 @@ type CurrentUserResponse = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-function hasAdminPermission(me: CurrentUserResponse | null): boolean {
+function hasOrgWideAccess(me: CurrentUserResponse | null): boolean {
   if (!me) return false;
   if (me.platformAdmin) return true;
+  return (me.orgPermissions ?? []).some((permission) => permission === 'super_user' || permission === 'perm_super_user');
+}
 
-  const orgPermissions = me.orgPermissions ?? [];
-  if (orgPermissions.some((permission) => permission === 'super_user' || permission === 'perm_super_user')) {
-    return true;
-  }
+function hasAdminPermission(me: CurrentUserResponse | null): boolean {
+  if (!me) return false;
+  if (hasOrgWideAccess(me)) return true;
 
   return Object.values(me.hotelPermissions ?? {}).some((permissions) =>
     permissions.some((permission) => permission === 'admin' || permission === 'perm_admin'),
@@ -87,7 +88,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .filter(Boolean)
         .join(' ');
       const raw = data as any;
-      const assignedHotels = currentUser?.assignedHotels ?? [];
+      const assignedHotels = Array.from(new Set([
+        ...(currentUser?.assignedHotels ?? []),
+        ...Object.keys(currentUser?.hotelPermissions ?? {}),
+      ]));
       const firstHotelCode = raw.hotelCode ?? assignedHotels[0];
 
       const nextUser: User = {
@@ -99,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hotelCode: firstHotelCode ?? undefined,
         hotelName: raw.hotelName ?? undefined,
         platformAdmin: currentUser?.platformAdmin ?? false,
+        canAccessAllHotels: hasOrgWideAccess(currentUser),
         assignedHotels,
       };
 

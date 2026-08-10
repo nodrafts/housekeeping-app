@@ -79,7 +79,7 @@ function StaffTabNavigator() {
       <StaffTab.Screen
         name="Housekeeping"
         component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="sparkles" focused={focused} />, tabBarLabel: 'Housekeeping' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="bed" focused={focused} />, tabBarLabel: 'Housekeeping' }}
       />
       <StaffTab.Screen
         name="Schedule"
@@ -124,7 +124,7 @@ function AdminTabNavigator() {
       <AdminTab.Screen
         name="Housekeeping"
         component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="sparkles" focused={focused} />, tabBarLabel: 'Housekeeping' }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="bed" focused={focused} />, tabBarLabel: 'Housekeeping' }}
       />
       <AdminTab.Screen
         name="Schedule"

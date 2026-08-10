@@ -9,6 +9,7 @@ export interface User {
   hotelCode?: string;   // pre-assigned hotel for STAFF
   hotelName?: string;
   platformAdmin?: boolean;
+  canAccessAllHotels?: boolean;
   assignedHotels?: string[];
 }
 

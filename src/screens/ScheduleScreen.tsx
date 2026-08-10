@@ -32,6 +32,7 @@ const FALLBACK_START_HOUR = 9;
 const DEFAULT_VISIBLE_HOURS = 8;
 const HOUR_HEIGHT = 72;
 const WEEK_TIME_GUTTER = 44;
+const WEEK_VISIBLE_DAYS = 6;
 
 const VIEW_LABELS: Record<ScheduleViewMode, string> = {
   day: 'Day',
@@ -120,6 +121,10 @@ function formatClock(value: Date) {
   return value.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
+function compactClock(value: Date) {
+  return value.toLocaleTimeString(undefined, { hour: 'numeric' }).replace(' ', '');
+}
+
 function formatApiTime(value: Date) {
   const hours = String(value.getHours()).padStart(2, '0');
   const minutes = String(value.getMinutes()).padStart(2, '0');
@@ -127,22 +132,12 @@ function formatApiTime(value: Date) {
   return `${hours}:${minutes}:${seconds}`;
 }
 
-function formatDuration(milliseconds: number) {
-  const totalMinutes = Math.max(0, Math.round(milliseconds / 60000));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
-  if (hours === 0) return `${minutes}m`;
-  if (minutes === 0) return `${hours}h`;
-  return `${hours}h ${minutes}m`;
-}
-
 function formatDayTitle(value: Date) {
   return value.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 function formatWeekTitle(start: Date) {
-  const end = addDays(start, 6);
+  const end = addDays(start, WEEK_VISIBLE_DAYS - 1);
   const startMonth = start.toLocaleDateString(undefined, { month: 'short' });
   const endMonth = end.toLocaleDateString(undefined, { month: 'short' });
   if (startMonth === endMonth) {
@@ -178,28 +173,6 @@ function isVisibleSchedule(schedule: StaffSchedule) {
   return schedule.status !== 'Draft';
 }
 
-function shiftStatus(schedule: StaffSchedule, accepted: boolean, pendingSwap: boolean) {
-  if (pendingSwap) {
-    return { label: 'Requested', color: '#92400e', backgroundColor: '#fef3c7' };
-  }
-  if (accepted || schedule.status === 'Accepted') {
-    return { label: 'Accepted', color: '#166534', backgroundColor: '#dcfce7' };
-  }
-  if (schedule.status === 'Completed') {
-    return { label: 'Completed', color: '#166534', backgroundColor: '#dcfce7' };
-  }
-  if (schedule.status === 'Started') {
-    return { label: 'In progress', color: '#1d4ed8', backgroundColor: '#dbeafe' };
-  }
-  if (schedule.status === 'Missed') {
-    return { label: 'Missed', color: '#991b1b', backgroundColor: '#fee2e2' };
-  }
-  if (schedule.status === 'Cancelled') {
-    return { label: 'Cancelled', color: '#475569', backgroundColor: colors.muted };
-  }
-  return { label: schedule.status ?? 'Published', color: '#475569', backgroundColor: colors.muted };
-}
-
 function shiftCardColors(accepted: boolean, pendingSwap: boolean) {
   if (pendingSwap) {
     return { backgroundColor: '#fff7ed', borderColor: '#f59e0b' };
@@ -208,20 +181,6 @@ function shiftCardColors(accepted: boolean, pendingSwap: boolean) {
     return { backgroundColor: '#ecfdf5', borderColor: '#16a34a' };
   }
   return { backgroundColor: '#eff6ff', borderColor: colors.primary };
-}
-
-function actualSummary(schedule: StaffSchedule) {
-  if (!schedule.actualStartTime) {
-    return 'Actual time not started';
-  }
-  if (!schedule.actualEndTime) {
-    return `Started ${formatClock(schedule.actualStartTime)}`;
-  }
-  return `Worked ${formatDuration(schedule.actualEndTime.getTime() - schedule.actualStartTime.getTime())}`;
-}
-
-function plannedDuration(schedule: StaffSchedule) {
-  return formatDuration(schedule.plannedEndTime.getTime() - schedule.plannedStartTime.getTime());
 }
 
 function actualOverlay(schedule: StaffSchedule) {
@@ -254,25 +213,26 @@ export function ScheduleScreen({ navigation }: any) {
   const { selectedHotel } = useHotelStore();
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
   const [viewMode, setViewMode] = useState<ScheduleViewMode>('week');
-  const [selectedDate, setSelectedDate] = useState(dateToInput(new Date()));
+  const [selectedDate, setSelectedDate] = useState(dateToInput(startOfWeek(new Date())));
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [modeOpen, setModeOpen] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
+  const [swapScheduleId, setSwapScheduleId] = useState<number | null>(null);
   const [visibleMonth, setVisibleMonth] = useState(inputToDate(selectedDate));
   const [pendingSwapScheduleIds, setPendingSwapScheduleIds] = useState<Set<number>>(new Set());
   const [targetEmployeeId, setTargetEmployeeId] = useState<string | null>(null);
   const [swapError, setSwapError] = useState<string | null>(null);
 
   const selectedDateObject = inputToDate(selectedDate);
-  const weekStart = startOfWeek(selectedDateObject);
-  const weekDays = useMemo(() => dateRange(weekStart, 7), [weekStart]);
+  const weekStart = selectedDateObject;
+  const weekDays = useMemo(() => dateRange(weekStart, WEEK_VISIBLE_DAYS), [weekStart]);
   const monthDate = startOfMonth(selectedDateObject);
 
   const scheduleQuery = useStaffSchedules({
     employeeId: user?.id,
     scheduleDate: viewMode === 'day' ? selectedDate : undefined,
     dateFrom: viewMode === 'week' ? dateToInput(weekStart) : viewMode === 'month' ? dateToInput(monthDate) : undefined,
-    dateTo: viewMode === 'week' ? dateToInput(addDays(weekStart, 6)) : viewMode === 'month' ? dateToInput(endOfMonth(monthDate)) : undefined,
+    dateTo: viewMode === 'week' ? dateToInput(addDays(weekStart, WEEK_VISIBLE_DAYS - 1)) : viewMode === 'month' ? dateToInput(endOfMonth(monthDate)) : undefined,
     enabled: !!user?.id,
   });
 
@@ -293,14 +253,18 @@ export function ScheduleScreen({ navigation }: any) {
   const weekDay = selectedDateObject.toLocaleDateString(undefined, { weekday: 'long' });
   const monthCellsForView = useMemo(() => monthCells(monthDate), [monthDate]);
   const currentSchedule = daySchedules[0];
+  const activeSwapSchedule = useMemo(
+    () => schedules.find((schedule) => schedule.id === swapScheduleId) ?? currentSchedule,
+    [currentSchedule, schedules, swapScheduleId],
+  );
   const scheduleContentWidth = Math.max(300, screenWidth - 32);
-  const weekDayWidth = Math.max(38, (scheduleContentWidth - WEEK_TIME_GUTTER) / 7);
+  const weekDayWidth = Math.max(44, (scheduleContentWidth - WEEK_TIME_GUTTER) / WEEK_VISIBLE_DAYS);
 
   const availableEmployeesQuery = useAvailableSwapEmployees({
-    date: selectedDate,
-    startTime: currentSchedule ? formatApiTime(currentSchedule.plannedStartTime) : undefined,
-    endTime: currentSchedule ? formatApiTime(currentSchedule.plannedEndTime) : undefined,
-    enabled: swapOpen && !!currentSchedule,
+    date: activeSwapSchedule?.scheduleDate ?? selectedDate,
+    startTime: activeSwapSchedule ? formatApiTime(activeSwapSchedule.plannedStartTime) : undefined,
+    endTime: activeSwapSchedule ? formatApiTime(activeSwapSchedule.plannedEndTime) : undefined,
+    enabled: swapOpen && !!activeSwapSchedule,
   });
 
   const canSwap = viewMode === 'day' && !!currentSchedule && currentSchedule.status === 'Published';
@@ -321,17 +285,27 @@ export function ScheduleScreen({ navigation }: any) {
   };
 
   const changeWeek = (delta: number) => {
-    setSelectedDate(dateToInput(addDays(weekStart, delta * 7)));
+    setSelectedDate(dateToInput(addDays(weekStart, delta * WEEK_VISIBLE_DAYS)));
   };
 
-  const openSwap = () => {
+  const openDayFromWeek = (dateInput: string) => {
+    setSelectedDate(dateInput);
+    setViewMode('day');
+  };
+
+  const openSwap = (schedule?: StaffSchedule) => {
+    const shift = schedule ?? currentSchedule;
+    setSwapScheduleId(shift?.id ?? null);
+    if (shift) {
+      setSelectedDate(shift.scheduleDate);
+    }
     setTargetEmployeeId(null);
     setSwapError(null);
     setSwapOpen(true);
   };
 
   const submitSwap = async () => {
-    if (!currentSchedule || targetEmployeeId == null) {
+    if (!activeSwapSchedule || targetEmployeeId == null) {
       setSwapError('Select a person to request the swap with.');
       return;
     }
@@ -339,15 +313,16 @@ export function ScheduleScreen({ navigation }: any) {
     try {
       setSwapError(null);
       const swap = await createSwap.mutateAsync({
-        requestScheduleId: currentSchedule.id,
+        requestScheduleId: activeSwapSchedule.id,
         targetEmployeeId,
         requestedBy: user?.id,
         status: 'Requested',
       });
       if (swap.status === 'Requested') {
-        setPendingSwapScheduleIds((current) => new Set(current).add(currentSchedule.id));
+        setPendingSwapScheduleIds((current) => new Set(current).add(activeSwapSchedule.id));
       }
       setSwapOpen(false);
+      setSwapScheduleId(null);
     } catch (error) {
       setSwapError(getApiErrorMessage(error));
     }
@@ -361,31 +336,31 @@ export function ScheduleScreen({ navigation }: any) {
     right?: number,
     width?: number,
     compact = false,
+    onPress?: () => void,
+    onSwapPress?: () => void,
   ) => {
     const accepted = schedule.status === 'Accepted';
     const pendingSwap = pendingSwapScheduleIds.has(schedule.id);
-    const status = shiftStatus(schedule, accepted, pendingSwap);
     const card = shiftCardColors(accepted, pendingSwap);
     const overlay = actualOverlay(schedule);
-
-    return (
-      <View
-        key={schedule.id}
-        style={{
-          position: 'absolute',
-          top,
-          left,
-          right,
-          width,
-          minHeight: compact ? 42 : 64,
-          height,
-          borderLeftWidth: 3,
-          borderLeftColor: card.borderColor,
-          borderRadius: radii.md,
-          backgroundColor: card.backgroundColor,
-          overflow: 'hidden',
-        }}
-      >
+    const compactStart = compactClock(schedule.plannedStartTime);
+    const compactEnd = compactClock(schedule.plannedEndTime);
+    const blockStyle = {
+      position: 'absolute' as const,
+      top,
+      left,
+      right,
+      width,
+      minHeight: compact ? 42 : 64,
+      height,
+      borderLeftWidth: 3,
+      borderLeftColor: card.borderColor,
+      borderRadius: radii.md,
+      backgroundColor: card.backgroundColor,
+      overflow: 'hidden' as const,
+    };
+    const content = (
+      <>
         {overlay ? (
           <View
             style={{
@@ -399,48 +374,68 @@ export function ScheduleScreen({ navigation }: any) {
           />
         ) : null}
 
-        <View style={{ flex: 1, paddingHorizontal: compact ? 4 : 10, paddingVertical: 8, justifyContent: 'center' }}>
+        <View style={{ flex: 1, paddingHorizontal: compact ? 3 : 10, paddingVertical: 8, justifyContent: 'center' }}>
           {compact ? (
-            <View style={{ alignItems: 'flex-start', justifyContent: 'center' }}>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontSize: 10, lineHeight: 12, fontWeight: '800', color: colors.foreground }} numberOfLines={1}>
-                {formatClock(schedule.plannedStartTime)}
+                {compactStart}
               </Text>
-              <Text style={{ fontSize: 10, lineHeight: 12, fontWeight: '800', color: colors.mutedForeground }}>
+              <Text style={{ fontSize: 9, lineHeight: 11, fontWeight: '800', color: colors.mutedForeground }}>
                 to
               </Text>
               <Text style={{ fontSize: 10, lineHeight: 12, fontWeight: '800', color: colors.foreground }} numberOfLines={1}>
-                {formatClock(schedule.plannedEndTime)}
+                {compactEnd}
               </Text>
             </View>
           ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-              <Text style={{ flex: 1, fontSize: 13, fontWeight: '800', color: colors.foreground }} numberOfLines={1}>
+            <View style={{ alignItems: 'flex-start', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: colors.foreground }} numberOfLines={1}>
                 {formatClock(schedule.plannedStartTime)} - {formatClock(schedule.plannedEndTime)}
               </Text>
-              <View
-                style={{
-                  borderRadius: radii.pill,
-                  backgroundColor: status.backgroundColor,
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                }}
-              >
-                <Text style={{ fontSize: 10, fontWeight: '800', color: status.color }}>
-                  {status.label}
-                </Text>
-              </View>
             </View>
           )}
 
-          <Text style={{ marginTop: 5, fontSize: compact ? 10 : 12, fontWeight: '700', color: card.borderColor }} numberOfLines={1}>
-            {compact ? status.label : `Planned ${plannedDuration(schedule)}`}
-          </Text>
-          {!compact ? (
-            <Text style={{ marginTop: 3, fontSize: 11, color: colors.mutedForeground }}>
-              {actualSummary(schedule)}
-            </Text>
+          {compact && onSwapPress ? (
+            <TouchableOpacity
+              onPress={(event) => {
+                event.stopPropagation?.();
+                onSwapPress();
+              }}
+              style={{
+                alignSelf: 'center',
+                marginTop: 7,
+                minWidth: 34,
+                minHeight: 22,
+                borderRadius: radii.pill,
+                borderWidth: 1,
+                borderColor: colors.primary,
+                backgroundColor: colors.card,
+                paddingHorizontal: 5,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              activeOpacity={0.75}
+            >
+              <Text style={{ fontSize: 9, lineHeight: 11, fontWeight: '800', color: colors.primary, textAlign: 'center' }} numberOfLines={1}>
+                Swap
+              </Text>
+            </TouchableOpacity>
           ) : null}
         </View>
+      </>
+    );
+
+    if (onPress) {
+      return (
+        <TouchableOpacity key={schedule.id} onPress={onPress} activeOpacity={0.82} style={blockStyle}>
+          {content}
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <View key={schedule.id} style={blockStyle}>
+        {content}
       </View>
     );
   };
@@ -556,7 +551,7 @@ export function ScheduleScreen({ navigation }: any) {
 
     const timelineHeight = (weekBounds.endHour - weekBounds.startHour) * HOUR_HEIGHT;
     const timelineStartMinute = weekBounds.startHour * 60;
-    const gridWidth = WEEK_TIME_GUTTER + weekDayWidth * 7;
+    const gridWidth = WEEK_TIME_GUTTER + weekDayWidth * WEEK_VISIBLE_DAYS;
 
     return (
       <View style={{ width: gridWidth }}>
@@ -569,7 +564,7 @@ export function ScheduleScreen({ navigation }: any) {
               return (
                 <TouchableOpacity
                   key={input}
-                  onPress={() => setSelectedDate(input)}
+                  onPress={() => openDayFromWeek(input)}
                   style={{
                     width: weekDayWidth,
                     paddingTop: 8,
@@ -643,6 +638,8 @@ export function ScheduleScreen({ navigation }: any) {
                 undefined,
                 weekDayWidth - 6,
                 true,
+                () => openDayFromWeek(schedule.scheduleDate),
+                schedule.status === 'Published' ? () => openSwap(schedule) : undefined,
               );
             })}
           </View>
@@ -779,7 +776,7 @@ export function ScheduleScreen({ navigation }: any) {
           {canSwap ? (
             <View style={{ marginTop: 10, flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
               <TouchableOpacity
-                onPress={openSwap}
+                onPress={() => openSwap()}
                 style={{
                   height: 34,
                   borderRadius: radii.pill,
@@ -832,7 +829,7 @@ export function ScheduleScreen({ navigation }: any) {
                 activeOpacity={0.75}
               >
                 <Text style={{ fontSize: 12, fontWeight: '800', color: colors.foreground }} numberOfLines={1}>
-                  {dateToInput(weekStart)} to {dateToInput(addDays(weekStart, 6))}
+                  {dateToInput(weekStart)} to {dateToInput(addDays(weekStart, WEEK_VISIBLE_DAYS - 1))}
                 </Text>
               </TouchableOpacity>
 
@@ -880,6 +877,9 @@ export function ScheduleScreen({ navigation }: any) {
               <TouchableOpacity
                 key={mode}
                 onPress={() => {
+                  if (mode === 'week' && viewMode !== 'week') {
+                    setSelectedDate(dateToInput(startOfWeek(selectedDateObject)));
+                  }
                   setViewMode(mode);
                   setModeOpen(false);
                 }}
@@ -963,19 +963,25 @@ export function ScheduleScreen({ navigation }: any) {
           <View style={{ maxHeight: '86%', borderTopLeftRadius: 22, borderTopRightRadius: 22, backgroundColor: colors.card, padding: 18 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <Text style={{ fontSize: 18, fontWeight: '800', color: colors.foreground }}>Swap shift</Text>
-              <TouchableOpacity onPress={() => setSwapOpen(false)} style={{ padding: 8 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setSwapOpen(false);
+                  setSwapScheduleId(null);
+                }}
+                style={{ padding: 8 }}
+              >
                 <Text style={{ fontSize: 16, fontWeight: '800', color: colors.mutedForeground }}>X</Text>
               </TouchableOpacity>
             </View>
 
-            {currentSchedule ? (
+            {activeSwapSchedule ? (
               <View style={{ borderRadius: radii.lg, backgroundColor: colors.selected, padding: 12, marginBottom: 14 }}>
                 <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>Your shift</Text>
                 <Text style={{ marginTop: 6, fontSize: 15, fontWeight: '800', color: colors.foreground }}>
-                  {formatClock(currentSchedule.plannedStartTime)} - {formatClock(currentSchedule.plannedEndTime)}
+                  {formatClock(activeSwapSchedule.plannedStartTime)} - {formatClock(activeSwapSchedule.plannedEndTime)}
                 </Text>
                 <Text style={{ marginTop: 2, fontSize: 12, color: colors.mutedForeground }}>
-                  {formatDayTitle(inputToDate(currentSchedule.scheduleDate))}
+                  {formatDayTitle(inputToDate(activeSwapSchedule.scheduleDate))}
                 </Text>
               </View>
             ) : null}
@@ -1041,7 +1047,7 @@ export function ScheduleScreen({ navigation }: any) {
 
             <TouchableOpacity
               onPress={submitSwap}
-              disabled={!currentSchedule || targetEmployeeId == null || createSwap.isPending}
+              disabled={!activeSwapSchedule || targetEmployeeId == null || createSwap.isPending}
               style={{
                 marginTop: 14,
                 height: 48,
@@ -1049,7 +1055,7 @@ export function ScheduleScreen({ navigation }: any) {
                 backgroundColor: colors.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
-                opacity: !currentSchedule || targetEmployeeId == null || createSwap.isPending ? 0.48 : 1,
+                opacity: !activeSwapSchedule || targetEmployeeId == null || createSwap.isPending ? 0.48 : 1,
               }}
               activeOpacity={0.75}
             >
