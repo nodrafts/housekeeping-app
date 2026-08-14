@@ -1,6 +1,6 @@
 export type TaskStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'DONE' | 'CANCELLED' | 'CLOSED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-export type TaskChecklistStatus = 'WAITING' | 'COMPLETED' | 'SKIPPED';
+export type TaskChecklistStatus = 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
 
 export type TaskSource = {
   sourceName: 'incidents' | string;

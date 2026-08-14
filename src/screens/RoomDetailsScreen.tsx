@@ -11,7 +11,7 @@ import { AppStackParamList } from '../navigation/types';
 import { Screen } from '../components/layout/Screen';
 import { Icon } from '../components/ui/Icon';
 import { colors, radii } from '../lib/theme';
-import { useAssignment, useUpdateStatus } from '../modules/housekeeping/useAssignment';
+import { useAssignment, useUpdateChecklist, useUpdateStatus } from '../modules/housekeeping/useAssignment';
 import type { ChecklistItem } from '../modules/housekeeping/types';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { ReportIssueModal } from '../components/ReportIssueModal';
@@ -22,17 +22,23 @@ type Props = NativeStackScreenProps<AppStackParamList, 'RoomDetails'>;
 
 function progressFor(checklist: ChecklistItem[]) {
   const total = checklist.length || 1;
-  const handled = checklist.filter((item) => item.done || item.skipped).length;
+  const handled = checklist.filter((item) => item.done).length;
   return Math.round((handled / total) * 100);
 }
 
 function setChecklistStatus(checklist: ChecklistItem[], itemId: string, status: ChecklistItem['status']) {
   return checklist.map((item) => (
     item.id === itemId
-      ? { ...item, status, done: status === 'COMPLETED', skipped: status === 'SKIPPED' }
+      ? { ...item, status, done: status === 'COMPLETED' }
       : item
   ));
 }
+
+const CHECKLIST_STATUS_OPTIONS: Array<{ value: ChecklistItem['status']; label: string }> = [
+  { value: 'WAITING', label: 'Waiting' },
+  { value: 'IN_PROGRESS', label: 'Started' },
+  { value: 'COMPLETED', label: 'Done' },
+];
 
 export function RoomDetailsScreen({ route, navigation }: Props) {
   const { assignmentId } = route.params;
@@ -41,6 +47,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
   const { data, isLoading } = useAssignment(assignmentId, hotelCode);
   const updateStatus = useUpdateStatus();
+  const updateChecklist = useUpdateChecklist();
   const [helpOpen, setHelpOpen] = useState(false);
   const [localChecklist, setLocalChecklist] = useState<ChecklistItem[] | null>(null);
 
@@ -56,18 +63,39 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
   );
   const progress = useMemo(() => progressFor(checklist), [checklist]);
   const hasWaitingItems = useMemo(
-    () => checklist.some((item) => item.status === 'WAITING'),
+    () => checklist.some((item) => item.status !== 'COMPLETED'),
     [checklist],
   );
+  const isReady = data?.status === 'READY';
+  const isCleaning = data?.status === 'CLEANING';
+  const canEditChecklist = isCleaning && !isReady;
 
   const updateItem = (item: ChecklistItem, status: ChecklistItem['status']) => {
+    if (!data || !canEditChecklist) return;
+    const nextChecklist = setChecklistStatus(localChecklist ?? data.checklist, item.id, status);
+    setLocalChecklist(nextChecklist);
+    updateChecklist.mutate(
+      { hotelCode, assignment: data, checklist: nextChecklist },
+      {
+        onError: () => {
+          setLocalChecklist(data.checklist);
+        },
+      },
+    );
+  };
+
+  const startCleaning = () => {
     if (!data) return;
-    setLocalChecklist((current) => setChecklistStatus(current ?? data.checklist, item.id, status));
+    updateStatus.mutate(
+      { hotelCode, assignment: data, status: 'CLEANING', checklist },
+      { onSuccess: (assignment) => setLocalChecklist(assignment.checklist) },
+    );
   };
 
   const completeRoom = () => {
+    if (!data || !isCleaning) return;
     updateStatus.mutate(
-      { assignmentId, status: 'DONE', checklist },
+      { hotelCode, assignment: data, status: 'READY', checklist },
       { onSuccess: () => navigation.goBack() },
     );
   };
@@ -104,6 +132,26 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
           <View style={{ width: `${progress}%`, height: '100%', borderRadius: radii.pill, backgroundColor: colors.primary }} />
         </View>
         <Text style={{ marginTop: 4, fontSize: 11, color: colors.mutedForeground }}>{progress}% complete</Text>
+        <View
+          style={{
+            marginTop: 10,
+            alignSelf: 'flex-start',
+            borderRadius: radii.pill,
+            backgroundColor: isCleaning ? '#dbeafe' : isReady ? '#dcfce7' : colors.muted,
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: '800',
+              color: isCleaning ? colors.primary : isReady ? '#166534' : colors.foreground,
+            }}
+          >
+            {isCleaning ? 'Cleaning' : isReady ? 'Ready' : 'Checkout'}
+          </Text>
+        </View>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 96 }}>
@@ -112,9 +160,6 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
         </Text>
 
         {checklist.map((item, index) => {
-          const done = item.status === 'COMPLETED';
-          const skipped = item.status === 'SKIPPED';
-
           return (
             <View
               key={`${item.id}-${index}`}
@@ -133,73 +178,104 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                   fontSize: 15,
                   lineHeight: 21,
                   fontWeight: '800',
-                  color: skipped ? colors.mutedForeground : colors.foreground,
+                  color: colors.foreground,
                 }}
               >
                 {item.label}
               </Text>
 
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                <TouchableOpacity
-                  onPress={() => updateItem(item, done ? 'WAITING' : 'COMPLETED')}
-                  style={{
-                    flex: 1,
-                    height: 44,
-                    borderRadius: radii.lg,
-                    borderWidth: 1.5,
-                    borderColor: done ? colors.primary : colors.input,
-                    backgroundColor: done ? colors.selected : colors.card,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: done ? colors.primary : colors.foreground }}>
-                    Done
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => updateItem(item, skipped ? 'WAITING' : 'SKIPPED')}
-                  style={{
-                    flex: 1,
-                    height: 44,
-                    borderRadius: radii.lg,
-                    borderWidth: 1.5,
-                    borderColor: skipped ? colors.primary : colors.input,
-                    backgroundColor: skipped ? colors.selected : colors.card,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: skipped ? colors.primary : colors.foreground }}>
-                    Skip
-                  </Text>
-                </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {CHECKLIST_STATUS_OPTIONS.map((option) => {
+                  const selected = item.status === option.value;
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      onPress={() => updateItem(item, option.value)}
+                      disabled={updateChecklist.isPending || !canEditChecklist || selected}
+                      style={{
+                        flex: 1,
+                        minHeight: 42,
+                        borderRadius: radii.lg,
+                        borderWidth: 1.5,
+                        borderColor: selected ? colors.primary : colors.input,
+                        backgroundColor: selected ? colors.selected : colors.card,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: updateChecklist.isPending || !canEditChecklist ? 0.65 : 1,
+                        paddingHorizontal: 6,
+                      }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        style={{ fontSize: 13, fontWeight: '800', color: selected ? colors.primary : colors.foreground }}
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
           );
         })}
 
-        <TouchableOpacity
-          onPress={completeRoom}
-          disabled={updateStatus.isPending || hasWaitingItems}
-          style={{
-            marginTop: 8,
-            height: 48,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: radii.pill,
-            backgroundColor: colors.primary,
-            opacity: updateStatus.isPending || hasWaitingItems ? 0.45 : 1,
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
-            <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
-              {updateStatus.isPending ? 'Saving...' : 'Mark room as cleaned'}
-            </Text>
+        {!isCleaning && !isReady ? (
+          <TouchableOpacity
+            onPress={startCleaning}
+            disabled={updateStatus.isPending}
+            style={{
+              marginTop: 8,
+              height: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: radii.pill,
+              backgroundColor: colors.primary,
+              opacity: updateStatus.isPending ? 0.45 : 1,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
+              <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
+                {updateStatus.isPending ? 'Saving...' : 'Move to Cleaning'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ) : isReady ? (
+          <View
+            style={{
+              marginTop: 8,
+              height: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: radii.pill,
+              backgroundColor: '#dcfce7',
+            }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '800', color: '#166534' }}>Room is Ready</Text>
           </View>
-        </TouchableOpacity>
+        ) : !hasWaitingItems ? (
+          <TouchableOpacity
+            onPress={completeRoom}
+            disabled={updateStatus.isPending}
+            style={{
+              marginTop: 8,
+              height: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: radii.pill,
+              backgroundColor: colors.primary,
+              opacity: updateStatus.isPending ? 0.45 : 1,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
+              <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
+                {updateStatus.isPending ? 'Saving...' : 'Mark room Ready'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ) : null}
 
         <TouchableOpacity
           onPress={() => setHelpOpen(true)}

@@ -31,8 +31,8 @@ export function DashboardScreen({ navigation }: Partial<Props>) {
     .split(' ').filter(Boolean).map((p) => p[0]).slice(0, 2).join('').toUpperCase();
 
   const totalRooms = assignments.length;
-  const doneRooms = assignments.filter((a) => a.status === 'DONE').length;
-  const inProgressRooms = assignments.filter((a) => a.status === 'IN_PROGRESS').length;
+  const doneRooms = assignments.filter((a) => a.status === 'READY').length;
+  const inProgressRooms = assignments.filter((a) => a.status === 'CLEANING').length;
   const totalChecklist = assignments.reduce((s, a) => s + a.checklist.length, 0);
   const doneChecklist = assignments.reduce((s, a) => s + a.checklist.filter((c) => c.done).length, 0);
   const overallProgress = totalChecklist > 0 ? Math.round((doneChecklist / totalChecklist) * 100) : 0;
@@ -176,8 +176,8 @@ export function DashboardScreen({ navigation }: Partial<Props>) {
                         <Text style={{ fontSize: 10, color: '#d97706', fontWeight: '600' }}>⚠ {openCount}</Text>
                       </View>
                     )}
-                    <View style={{ backgroundColor: a.status === 'DONE' ? '#d1fae5' : '#f1f5f9', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
-                      <Text style={{ fontSize: 10, color: a.status === 'DONE' ? '#065f46' : '#334155', fontWeight: '500' }}>{a.status}</Text>
+                    <View style={{ backgroundColor: a.status === 'READY' ? '#d1fae5' : '#f1f5f9', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+                      <Text style={{ fontSize: 10, color: a.status === 'READY' ? '#065f46' : '#334155', fontWeight: '500' }}>{a.status}</Text>
                     </View>
                   </View>
                 </View>

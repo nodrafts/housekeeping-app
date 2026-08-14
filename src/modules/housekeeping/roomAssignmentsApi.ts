@@ -1,13 +1,18 @@
 import type { Task, TaskChecklistItem } from '../tasks/types';
-import { getTask, listTasks } from '../tasks/taskApi';
+import { api } from '../../lib/api';
+import { DEFAULT_ORG_ID } from '../../lib/propertyConfig';
+import { getTask, updateTask } from '../tasks/taskApi';
 import type { ChecklistItem, RoomAssignment, RoomStatus } from './types';
+import { DEFAULT_TIME_ZONE } from '../settings/timeZoneStore';
 
 export const HOUSEKEEPING_TASK_TYPE = 'HOUSEKEEPING';
 
-export const assignmentsKey = (hotelCode?: string, dueDate?: string) => [
+export const assignmentsKey = (hotelCode?: string, timeZone = DEFAULT_TIME_ZONE) => [
   'assignments',
   hotelCode ?? 'fallback',
-  dueDate ?? 'today',
+  'me',
+  'today',
+  timeZone,
 ];
 
 export const assignmentKey = (hotelCode: string | undefined, id: string) => [
@@ -16,12 +21,26 @@ export const assignmentKey = (hotelCode: string | undefined, id: string) => [
   id,
 ];
 
-function normalizeStatus(status?: string): RoomStatus {
-  const value = (status ?? '').toUpperCase();
-  if (value === 'COMPLETED' || value === 'DONE' || value === 'CLOSED') return 'DONE';
+function normalizeRoomStatus(status?: string | null): RoomStatus {
+  const value = (status ?? '').trim().toUpperCase();
+  if (value === 'COMPLETED' || value === 'DONE' || value === 'CLOSED' || value === 'READY') return 'READY';
+  if (value === 'IN_PROGRESS' || value === 'CLEANING') return 'CLEANING';
+  if (value === 'STAY_OVER' || value === 'STAYOVER') return 'STAY_OVER';
+  if (value === 'CHECKED_OUT' || value === 'CHECKEDOUT' || value === 'CHECKED OUT') return 'CHECKOUT';
+  return 'CHECKOUT';
+}
+
+function taskStatusForRoomStatus(status: RoomStatus) {
+  if (status === 'READY') return 'COMPLETED';
+  if (status === 'CLEANING') return 'IN_PROGRESS';
+  return 'OPEN';
+}
+
+function normalizeChecklistStatus(status?: string | null): ChecklistItem['status'] {
+  const value = (status ?? '').trim().toUpperCase();
+  if (value === 'COMPLETED') return 'COMPLETED';
   if (value === 'IN_PROGRESS') return 'IN_PROGRESS';
-  if (value === 'OUT_OF_ORDER' || value === 'OOO') return 'OUT_OF_ORDER';
-  return 'TO_CLEAN';
+  return 'WAITING';
 }
 
 function stringField(fields: Record<string, unknown> | null | undefined, key: string): string | undefined {
@@ -44,13 +63,12 @@ function checklistFallbackId(item: TaskChecklistItem, index: number) {
 }
 
 function mapChecklistItem(item: TaskChecklistItem, index: number): ChecklistItem {
-  const status = item.status ?? 'WAITING';
+  const status = normalizeChecklistStatus(item.status);
   return {
     id: checklistFallbackId(item, index),
     label: item.title,
     status,
     done: status === 'COMPLETED',
-    skipped: status === 'SKIPPED',
     notes: item.notes,
   };
 }
@@ -59,10 +77,16 @@ export function mapTaskToAssignment(task: Task): RoomAssignment {
   const additionalInfo = task.additionalInfo ?? {};
   const roomNumber =
     stringField(additionalInfo, 'roomNumber') ??
+    stringField(additionalInfo, 'roomNo') ??
     stringField(additionalInfo, 'unitId') ??
     String(task.id);
   const floor = stringField(additionalInfo, 'floor') ?? '';
-  const unitType = stringField(additionalInfo, 'unitType');
+  const roomType = stringField(additionalInfo, 'roomType') ?? stringField(additionalInfo, 'unitType');
+  const roomStatus =
+    stringField(additionalInfo, 'housekeepingStatus') ??
+    stringField(additionalInfo, 'roomStatus') ??
+    stringField(additionalInfo, 'status') ??
+    task.status;
 
   return {
     id: String(task.id),
@@ -70,14 +94,22 @@ export function mapTaskToAssignment(task: Task): RoomAssignment {
     roomId: roomNumber,
     roomNumber,
     floor,
-    type: unitType,
-    status: normalizeStatus(task.status),
-    completedAt: task.completedAt ? new Date(task.completedAt).toISOString() : undefined,
+    type: roomType,
+    roomType,
+    status: normalizeRoomStatus(roomStatus),
+    housekeeper: task.assigneeId ? { employeeId: task.assigneeId } : null,
+    cleaningStartTime: null,
+    cleaningEndTime: null,
     checklist: (task.checklist ?? []).map(mapChecklistItem),
   };
 }
 
-export function mapChecklistToTaskChecklist(checklist: ChecklistItem[]): TaskChecklistItem[] {
+function shouldShowHousekeepingAssignment(task: Task) {
+  const assignment = mapTaskToAssignment(task);
+  return assignment.status === 'CHECKOUT' || assignment.status === 'CLEANING';
+}
+
+function checklistPayload(checklist: ChecklistItem[]): TaskChecklistItem[] {
   return checklist.map((item) => ({
     id: item.id,
     title: item.label,
@@ -86,22 +118,41 @@ export function mapChecklistToTaskChecklist(checklist: ChecklistItem[]): TaskChe
   }));
 }
 
-export async function fetchAssignments(hotelCode?: string, dueDate?: string): Promise<RoomAssignment[]> {
-  if (!hotelCode || !dueDate) return [];
+function unpackHousekeepingTasks(payload: any): Task[] {
+  const data = payload?.data ?? payload;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.tasks)) return data.tasks;
+  return [];
+}
 
-  const tasks = await listTasks({
-    hotelCode,
-    taskType: HOUSEKEEPING_TASK_TYPE,
-    dueAfter: dueDate,
-    dueBefore: dueDate,
-    pageSize: 100,
+export async function fetchAssignments(
+  hotelCode?: string,
+  timeZone = DEFAULT_TIME_ZONE,
+): Promise<RoomAssignment[]> {
+  if (!hotelCode) return [];
+
+  const response = await api.get<any>(`/api/v1/orgs/${DEFAULT_ORG_ID}/hotels/${hotelCode}/housekeeping/tasks/me/today`, {
+    params: { timeZone },
   });
+  const tasks = unpackHousekeepingTasks(response.data);
 
-  return tasks.map(mapTaskToAssignment);
+  return tasks.filter(shouldShowHousekeepingAssignment).map(mapTaskToAssignment);
 }
 
 export async function fetchAssignment(hotelCode: string | undefined, id: string): Promise<RoomAssignment | undefined> {
   if (!hotelCode || !id) return undefined;
   const task = await getTask(Number(id));
   return mapTaskToAssignment(task);
+}
+
+export async function updateHousekeepingTask(
+  assignment: RoomAssignment,
+  updates: { status?: RoomStatus; checklist?: ChecklistItem[] },
+): Promise<RoomAssignment> {
+  const taskId = assignment.taskId ?? Number(assignment.id);
+  const updatedTask = await updateTask(taskId, {
+    ...(updates.status ? { status: taskStatusForRoomStatus(updates.status) } : {}),
+    ...(updates.checklist ? { checklist: checklistPayload(updates.checklist) } : {}),
+  });
+  return mapTaskToAssignment(updatedTask);
 }
