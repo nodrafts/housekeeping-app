@@ -2,12 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ChecklistItem, RoomAssignment, RoomStatus } from './types';
 import {
   assignmentKey,
-  assignmentsKey,
   fetchAssignment,
-  mapChecklistToTaskChecklist,
-  mapTaskToAssignment,
+  updateHousekeepingTask,
 } from './roomAssignmentsApi';
-import { updateTask } from '../tasks/taskApi';
 
 export function useAssignment(id: string, hotelCode?: string) {
   return useQuery({
@@ -18,20 +15,16 @@ export function useAssignment(id: string, hotelCode?: string) {
 }
 
 interface UpdateChecklistPayload {
-  assignmentId: string;
+  hotelCode: string;
+  assignment: RoomAssignment;
   checklist: ChecklistItem[];
 }
 
 interface UpdateStatusPayload {
-  assignmentId: string;
+  hotelCode: string;
+  assignment: RoomAssignment;
   status: RoomStatus;
   checklist?: ChecklistItem[];
-}
-
-function backendTaskStatus(status: RoomStatus) {
-  if (status === 'DONE') return 'COMPLETED';
-  if (status === 'IN_PROGRESS') return 'IN_PROGRESS';
-  return 'OPEN';
 }
 
 function updateAssignmentList(
@@ -49,26 +42,26 @@ function writeAssignmentToCaches(queryClient: ReturnType<typeof useQueryClient>,
     { queryKey: ['assignments'] },
     (prev) => updateAssignmentList(prev, assignment.id, () => assignment),
   );
-  queryClient.setQueriesData<RoomAssignment>(
+  queryClient.setQueriesData<RoomAssignment | undefined>(
     { queryKey: ['assignment'] },
     (prev) => (prev?.id === assignment.id ? assignment : prev),
   );
+}
+
+function needsCleaningStep(current: RoomStatus, next: RoomStatus) {
+  return next === 'READY' && (current === 'CHECKOUT' || current === 'STAY_OVER');
 }
 
 export function useUpdateChecklist() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ assignmentId, checklist }: UpdateChecklistPayload) => {
-      const updatedTask = await updateTask(Number(assignmentId), {
-        checklist: mapChecklistToTaskChecklist(checklist),
-      });
-      return mapTaskToAssignment(updatedTask);
+    mutationFn: async ({ assignment, checklist }: UpdateChecklistPayload) => {
+      return updateHousekeepingTask(assignment, { checklist });
     },
     onSuccess: (assignment) => {
       writeAssignmentToCaches(queryClient, assignment);
       queryClient.invalidateQueries({ queryKey: ['assignments'] });
-      queryClient.invalidateQueries({ queryKey: assignmentsKey(undefined, undefined) });
     },
   });
 }
@@ -77,17 +70,26 @@ export function useUpdateStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ assignmentId, status, checklist }: UpdateStatusPayload) => {
-      const updatedTask = await updateTask(Number(assignmentId), {
-        status: backendTaskStatus(status),
-        ...(checklist ? { checklist: mapChecklistToTaskChecklist(checklist) } : {}),
+    mutationFn: async ({ assignment, status, checklist }: UpdateStatusPayload) => {
+      const finalChecklist = checklist ?? assignment.checklist;
+      if (needsCleaningStep(assignment.status, status)) {
+        const cleaningAssignment = await updateHousekeepingTask(assignment, {
+          status: 'CLEANING',
+          checklist: finalChecklist,
+        });
+        return updateHousekeepingTask(cleaningAssignment, {
+          status: 'READY',
+          checklist: finalChecklist,
+        });
+      }
+      return updateHousekeepingTask(assignment, {
+        status,
+        checklist: finalChecklist,
       });
-      return mapTaskToAssignment(updatedTask);
     },
     onSuccess: (assignment) => {
       writeAssignmentToCaches(queryClient, assignment);
       queryClient.invalidateQueries({ queryKey: ['assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['task-history', assignment.taskId] });
     },
   });
 }

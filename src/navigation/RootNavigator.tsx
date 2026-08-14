@@ -6,6 +6,7 @@ import { AuthStackParamList, AppStackParamList, StaffTabParamList, AdminTabParam
 import { LoginScreen } from '../screens/LoginScreen';
 import { RoomsListScreen } from '../screens/RoomsListScreen';
 import { ScheduleScreen } from '../screens/ScheduleScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
 import { RoomDetailsScreen } from '../screens/RoomDetailsScreen';
 import { ReportIssueScreen } from '../screens/ReportIssueScreen';
 import { HotelSelectScreen } from '../screens/HotelSelectScreen';
@@ -94,8 +95,7 @@ function StaffTabNavigator() {
       />
       <StaffTab.Screen
         name="Profile"
-        children={() => <FrozenTabScreen label="Profile" />}
-        listeners={frozenListeners}
+        component={ProfileScreen}
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />, tabBarLabel: 'Profile' }}
       />
     </StaffTab.Navigator>
@@ -139,8 +139,7 @@ function AdminTabNavigator() {
       />
       <AdminTab.Screen
         name="Profile"
-        children={() => <FrozenTabScreen label="Profile" />}
-        listeners={frozenListeners}
+        component={ProfileScreen}
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />, tabBarLabel: 'Profile' }}
       />
     </AdminTab.Navigator>
