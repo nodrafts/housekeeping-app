@@ -18,6 +18,7 @@ import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { useAllIncidents, getOpenIncidentsForRoom } from '../modules/housekeeping/useIncidents';
 import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 import { colors, radii } from '../lib/theme';
+import { useTimeZone } from '../modules/settings/timeZoneStore';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'RoomsList'> | any;
 
@@ -28,18 +29,26 @@ function dateToInput(value: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function progressFor(checklist: { done: boolean; skipped?: boolean }[]) {
+function progressFor(checklist: { done: boolean }[]) {
   const total = checklist.length || 1;
-  const handled = checklist.filter((item) => item.done || item.skipped).length;
+  const handled = checklist.filter((item) => item.done).length;
   return Math.round((handled / total) * 100);
+}
+
+function statusLabel(status: string) {
+  if (status === 'READY') return 'Ready';
+  if (status === 'CLEANING') return 'Cleaning';
+  if (status === 'STAY_OVER') return 'Stay over';
+  return 'Checkout';
 }
 
 export function RoomsListScreen({ navigation }: Props) {
   const { user } = useAuth();
   const { selectedHotel } = useHotelStore();
+  const { timeZone } = useTimeZone();
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
   const [selectedDate] = useState(dateToInput(new Date()));
-  const { data = [], isLoading, refetch, isFetching } = useAssignments(hotelCode, selectedDate);
+  const { data = [], isLoading, refetch, isFetching } = useAssignments(hotelCode);
   const { data: allIncidents = [] } = useAllIncidents(hotelCode);
 
   return (
@@ -63,6 +72,9 @@ export function RoomsListScreen({ navigation }: Props) {
                 Today {selectedDate}
               </Text>
             </View>
+            <Text style={{ marginTop: 3, fontSize: 11, color: colors.mutedForeground }}>
+              {timeZone}
+            </Text>
           </View>
 
           <TouchableOpacity
@@ -107,15 +119,15 @@ export function RoomsListScreen({ navigation }: Props) {
             >
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.foreground }}>No rooms due</Text>
               <Text style={{ marginTop: 4, fontSize: 13, color: colors.mutedForeground }}>
-                Today has no housekeeping tasks for {hotelCode}.
+                Today has no housekeeping tasks assigned for {hotelCode}.
               </Text>
             </View>
           }
           renderItem={({ item }) => {
             const progress = progressFor(item.checklist);
             const openIncidents = getOpenIncidentsForRoom(allIncidents, item.roomNumber);
-            const done = item.status === 'DONE';
-            const inProgress = item.status === 'IN_PROGRESS';
+            const done = item.status === 'READY';
+            const inProgress = item.status === 'CLEANING';
 
             return (
               <TouchableOpacity
@@ -149,7 +161,7 @@ export function RoomsListScreen({ navigation }: Props) {
                     }}
                   >
                     <Text style={{ fontSize: 11, fontWeight: '800', color: done ? colors.foreground : inProgress ? '#92400e' : colors.foreground }}>
-                      {done ? 'DONE' : inProgress ? 'STARTED' : 'OPEN'}
+                      {statusLabel(item.status)}
                     </Text>
                   </View>
                 </View>
