@@ -34,13 +34,6 @@ function setChecklistStatus(checklist: ChecklistItem[], itemId: string, status: 
   ));
 }
 
-const CHECKLIST_STATUS_OPTIONS: Array<{ value: ChecklistItem['status']; label: string }> = [
-  { value: 'WAITING', label: 'Waiting' },
-  { value: 'IN_PROGRESS', label: 'Started' },
-  { value: 'COMPLETED', label: 'Done' },
-  { value: 'SKIPPED', label: 'Skipped' },
-];
-
 export function RoomDetailsScreen({ route, navigation }: Props) {
   const { assignmentId } = route.params;
   const { selectedHotel } = useHotelStore();
@@ -63,38 +56,38 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
     [localChecklist, data?.checklist],
   );
   const progress = useMemo(() => progressFor(checklist), [checklist]);
-  const hasWaitingItems = useMemo(
+  const hasIncompleteItems = useMemo(
     () => checklist.some((item) => item.status !== 'COMPLETED' && item.status !== 'SKIPPED'),
     [checklist],
   );
   const isReady = data?.status === 'READY';
   const isCleaning = data?.status === 'CLEANING';
-  const canEditChecklist = isCleaning && !isReady;
+  const canEditChecklist = !isReady;
 
-  const updateItem = (item: ChecklistItem, status: ChecklistItem['status']) => {
+  const completeItem = (item: ChecklistItem) => {
     if (!data || !canEditChecklist) return;
-    const nextChecklist = setChecklistStatus(localChecklist ?? data.checklist, item.id, status);
+    const nextChecklist = setChecklistStatus(localChecklist ?? data.checklist, item.id, 'COMPLETED');
     setLocalChecklist(nextChecklist);
+
+    if (!isCleaning) {
+      updateStatus.mutate(
+        { hotelCode, assignment: data, status: 'CLEANING', checklist: nextChecklist },
+        {
+          onSuccess: (assignment) => setLocalChecklist(assignment.checklist),
+          onError: () => setLocalChecklist(data.checklist),
+        },
+      );
+      return;
+    }
+
     updateChecklist.mutate(
       { hotelCode, assignment: data, checklist: nextChecklist },
-      {
-        onError: () => {
-          setLocalChecklist(data.checklist);
-        },
-      },
-    );
-  };
-
-  const startCleaning = () => {
-    if (!data) return;
-    updateStatus.mutate(
-      { hotelCode, assignment: data, status: 'CLEANING', checklist },
-      { onSuccess: (assignment) => setLocalChecklist(assignment.checklist) },
+      { onError: () => setLocalChecklist(data.checklist) },
     );
   };
 
   const completeRoom = () => {
-    if (!data || !isCleaning) return;
+    if (!data || hasIncompleteItems) return;
     updateStatus.mutate(
       { hotelCode, assignment: data, status: 'READY', checklist },
       { onSuccess: () => navigation.goBack() },
@@ -185,64 +178,55 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                 {item.label}
               </Text>
 
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                {CHECKLIST_STATUS_OPTIONS.map((option) => {
-                  const selected = item.status === option.value;
-                  return (
-                    <TouchableOpacity
-                      key={option.value}
-                      onPress={() => updateItem(item, option.value)}
-                      disabled={updateChecklist.isPending || !canEditChecklist || selected}
-                      style={{
-                        flex: 1,
-                        minHeight: 42,
-                        borderRadius: radii.lg,
-                        borderWidth: 1.5,
-                        borderColor: selected ? colors.primary : colors.input,
-                        backgroundColor: selected ? colors.selected : colors.card,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: updateChecklist.isPending || !canEditChecklist ? 0.65 : 1,
-                        paddingHorizontal: 6,
-                      }}
-                    >
-                      <Text
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        style={{ fontSize: 13, fontWeight: '800', color: selected ? colors.primary : colors.foreground }}
-                      >
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+              <TouchableOpacity
+                onPress={() => completeItem(item)}
+                disabled={
+                  updateChecklist.isPending ||
+                  updateStatus.isPending ||
+                  !canEditChecklist ||
+                  item.status === 'COMPLETED' ||
+                  item.status === 'SKIPPED'
+                }
+                style={{
+                  minHeight: 42,
+                  borderRadius: radii.lg,
+                  borderWidth: 1.5,
+                  borderColor: item.status === 'COMPLETED' ? colors.primary : colors.input,
+                  backgroundColor: item.status === 'COMPLETED' ? colors.selected : colors.card,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity:
+                    updateChecklist.isPending ||
+                    updateStatus.isPending ||
+                    !canEditChecklist ||
+                    item.status === 'COMPLETED' ||
+                    item.status === 'SKIPPED'
+                      ? 0.72
+                      : 1,
+                  paddingHorizontal: 12,
+                }}
+              >
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '800',
+                    color: item.status === 'COMPLETED' ? colors.primary : colors.foreground,
+                  }}
+                >
+                  {item.status === 'COMPLETED'
+                    ? 'Completed'
+                    : item.status === 'SKIPPED'
+                      ? 'Skipped'
+                      : 'Mark as completed'}
+                </Text>
+              </TouchableOpacity>
             </View>
           );
         })}
 
-        {!isCleaning && !isReady ? (
-          <TouchableOpacity
-            onPress={startCleaning}
-            disabled={updateStatus.isPending}
-            style={{
-              marginTop: 8,
-              height: 48,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: radii.pill,
-              backgroundColor: colors.primary,
-              opacity: updateStatus.isPending ? 0.45 : 1,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
-              <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
-                {updateStatus.isPending ? 'Saving...' : 'Move to Cleaning'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ) : isReady ? (
+        {isReady ? (
           <View
             style={{
               marginTop: 8,
@@ -255,10 +239,10 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
           >
             <Text style={{ fontSize: 14, fontWeight: '800', color: '#166534' }}>Room is Ready</Text>
           </View>
-        ) : !hasWaitingItems ? (
+        ) : (
           <TouchableOpacity
             onPress={completeRoom}
-            disabled={updateStatus.isPending}
+            disabled={updateStatus.isPending || hasIncompleteItems}
             style={{
               marginTop: 8,
               height: 48,
@@ -266,17 +250,17 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
               justifyContent: 'center',
               borderRadius: radii.pill,
               backgroundColor: colors.primary,
-              opacity: updateStatus.isPending ? 0.45 : 1,
+              opacity: updateStatus.isPending || hasIncompleteItems ? 0.45 : 1,
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
               <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
-                {updateStatus.isPending ? 'Saving...' : 'Mark room Ready'}
+                {updateStatus.isPending ? 'Saving...' : 'Mark as Ready'}
               </Text>
             </View>
           </TouchableOpacity>
-        ) : null}
+        )}
 
         <TouchableOpacity
           onPress={() => setHelpOpen(true)}

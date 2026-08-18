@@ -18,7 +18,6 @@ import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { useAllIncidents, getOpenIncidentsForRoom } from '../modules/housekeeping/useIncidents';
 import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 import { colors, radii } from '../lib/theme';
-import { useTimeZone } from '../modules/settings/timeZoneStore';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'RoomsList'> | any;
 
@@ -45,7 +44,6 @@ function statusLabel(status: string) {
 export function RoomsListScreen({ navigation }: Props) {
   const { user } = useAuth();
   const { selectedHotel } = useHotelStore();
-  const { timeZone } = useTimeZone();
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
   const [selectedDate] = useState(dateToInput(new Date()));
   const { data = [], isLoading, refetch, isFetching } = useAssignments(hotelCode);
@@ -72,9 +70,6 @@ export function RoomsListScreen({ navigation }: Props) {
                 Today {selectedDate}
               </Text>
             </View>
-            <Text style={{ marginTop: 3, fontSize: 11, color: colors.mutedForeground }}>
-              {timeZone}
-            </Text>
           </View>
 
           <TouchableOpacity

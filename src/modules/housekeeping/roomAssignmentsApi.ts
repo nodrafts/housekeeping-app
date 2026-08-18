@@ -3,16 +3,14 @@ import { api } from '../../lib/api';
 import { DEFAULT_ORG_ID } from '../../lib/propertyConfig';
 import { getTask, updateTask } from '../tasks/taskApi';
 import type { ChecklistItem, RoomAssignment, RoomStatus } from './types';
-import { DEFAULT_TIME_ZONE } from '../settings/timeZoneStore';
 
 export const HOUSEKEEPING_TASK_TYPE = 'HOUSEKEEPING';
 
-export const assignmentsKey = (hotelCode?: string, timeZone = DEFAULT_TIME_ZONE) => [
+export const assignmentsKey = (hotelCode?: string) => [
   'assignments',
   hotelCode ?? 'fallback',
   'me',
   'today',
-  timeZone,
 ];
 
 export const assignmentKey = (hotelCode: string | undefined, id: string) => [
@@ -126,15 +124,10 @@ function unpackHousekeepingTasks(payload: any): Task[] {
   return [];
 }
 
-export async function fetchAssignments(
-  hotelCode?: string,
-  timeZone = DEFAULT_TIME_ZONE,
-): Promise<RoomAssignment[]> {
+export async function fetchAssignments(hotelCode?: string): Promise<RoomAssignment[]> {
   if (!hotelCode) return [];
 
-  const response = await api.get<any>(`/api/v1/orgs/${DEFAULT_ORG_ID}/hotels/${hotelCode}/housekeeping/tasks/me/today`, {
-    params: { timeZone },
-  });
+  const response = await api.get<any>(`/api/v1/orgs/${DEFAULT_ORG_ID}/hotels/${hotelCode}/housekeeping/tasks/me/today`);
   const tasks = unpackHousekeepingTasks(response.data);
 
   return tasks.filter(shouldShowHousekeepingAssignment).map(mapTaskToAssignment);
