@@ -131,7 +131,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
             marginTop: 10,
             alignSelf: 'flex-start',
             borderRadius: radii.pill,
-            backgroundColor: isCleaning ? '#dbeafe' : isReady ? '#dcfce7' : colors.muted,
+            backgroundColor: isCleaning ? '#fef3c7' : isReady ? '#dcfce7' : colors.muted,
             paddingHorizontal: 10,
             paddingVertical: 5,
           }}
@@ -140,7 +140,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
             style={{
               fontSize: 11,
               fontWeight: '800',
-              color: isCleaning ? colors.primary : isReady ? '#166534' : colors.foreground,
+              color: isCleaning ? '#92400e' : isReady ? '#166534' : colors.foreground,
             }}
           >
             {isCleaning ? 'Cleaning' : isReady ? 'Ready' : 'Checkout'}
