@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,26 @@ type Props = NativeStackScreenProps<AppStackParamList, 'HotelSelect'>;
 
 export function HotelSelectScreen({ navigation }: Props) {
   const { user } = useAuth();
-  const { data: hotels = [], isLoading, isError, refetch } = useHotels(user?.assignedHotels, user?.canAccessAllHotels);
+  const fallbackHotels = useMemo(() => {
+    const seen = new Set<string>();
+    const items: Array<{ hotelCode: string; name: string }> = [];
+    const addHotel = (hotelCode?: string | null, name?: string | null) => {
+      const code = hotelCode?.trim();
+      if (!code) return;
+      const normalizedCode = code.toUpperCase();
+      if (seen.has(normalizedCode)) return;
+      seen.add(normalizedCode);
+      items.push({ hotelCode: normalizedCode, name: name?.trim() || normalizedCode });
+    };
+
+    addHotel(user?.hotelCode, user?.hotelName);
+    user?.assignedHotels?.forEach((hotelCode) => addHotel(hotelCode, hotelCode));
+    return items;
+  }, [user?.assignedHotels, user?.hotelCode, user?.hotelName]);
+
+  const { data: apiHotels = [], isLoading, isError, refetch } = useHotels(user?.assignedHotels, user?.canAccessAllHotels);
+  const hotels = apiHotels.length > 0 ? apiHotels : fallbackHotels;
+  const showLoadError = isError && hotels.length === 0;
   const { selectedHotel, setSelectedHotel } = useHotelStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [pending, setPending] = useState(selectedHotel);
@@ -50,9 +69,9 @@ export function HotelSelectScreen({ navigation }: Props) {
           Choose the hotel you are working at today.
         </Text>
 
-        {isLoading ? (
+        {isLoading && hotels.length === 0 ? (
           <ActivityIndicator size="small" color="#2563eb" style={{ marginVertical: 16 }} />
-        ) : isError ? (
+        ) : showLoadError ? (
           <View style={{ marginBottom: 16 }}>
             <Text style={{ fontSize: 13, color: '#dc2626', marginBottom: 8 }}>Could not load properties.</Text>
             <TouchableOpacity onPress={() => refetch()}>
