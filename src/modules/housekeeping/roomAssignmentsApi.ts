@@ -40,6 +40,7 @@ function normalizeChecklistStatus(status?: string | null): ChecklistItem['status
   const value = (status ?? '').trim().toUpperCase();
   if (value === 'COMPLETED') return 'COMPLETED';
   if (value === 'IN_PROGRESS') return 'IN_PROGRESS';
+  if (value === 'SKIPPED') return 'SKIPPED';
   return 'WAITING';
 }
 
@@ -68,7 +69,7 @@ function mapChecklistItem(item: TaskChecklistItem, index: number): ChecklistItem
     id: checklistFallbackId(item, index),
     label: item.title,
     status,
-    done: status === 'COMPLETED',
+    done: status === 'COMPLETED' || status === 'SKIPPED',
     notes: item.notes,
   };
 }

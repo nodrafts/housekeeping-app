@@ -29,7 +29,7 @@ function progressFor(checklist: ChecklistItem[]) {
 function setChecklistStatus(checklist: ChecklistItem[], itemId: string, status: ChecklistItem['status']) {
   return checklist.map((item) => (
     item.id === itemId
-      ? { ...item, status, done: status === 'COMPLETED' }
+      ? { ...item, status, done: status === 'COMPLETED' || status === 'SKIPPED' }
       : item
   ));
 }
@@ -38,6 +38,7 @@ const CHECKLIST_STATUS_OPTIONS: Array<{ value: ChecklistItem['status']; label: s
   { value: 'WAITING', label: 'Waiting' },
   { value: 'IN_PROGRESS', label: 'Started' },
   { value: 'COMPLETED', label: 'Done' },
+  { value: 'SKIPPED', label: 'Skipped' },
 ];
 
 export function RoomDetailsScreen({ route, navigation }: Props) {
@@ -63,7 +64,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
   );
   const progress = useMemo(() => progressFor(checklist), [checklist]);
   const hasWaitingItems = useMemo(
-    () => checklist.some((item) => item.status !== 'COMPLETED'),
+    () => checklist.some((item) => item.status !== 'COMPLETED' && item.status !== 'SKIPPED'),
     [checklist],
   );
   const isReady = data?.status === 'READY';
