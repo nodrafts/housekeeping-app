@@ -132,7 +132,7 @@ export function RoomsListScreen({ navigation }: Props) {
                   marginBottom: 12,
                   borderRadius: radii.md,
                   borderWidth: 1.5,
-                  borderColor: done ? colors.success : inProgress ? colors.warning : colors.input,
+                  borderColor: done ? colors.success : colors.input,
                   backgroundColor: colors.card,
                   padding: 14,
                 }}
