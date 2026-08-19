@@ -6,18 +6,15 @@ import { AuthProvider } from './src/modules/auth/AuthProvider';
 import { queryClient } from './src/lib/queryClient';
 
 import { HotelProvider } from './src/modules/hotel/useHotelStore';
-import { TimeZoneProvider } from './src/modules/settings/timeZoneStore';
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <HotelProvider>
-          <TimeZoneProvider>
-            <NavigationContainer>
-              <RootNavigator />
-            </NavigationContainer>
-          </TimeZoneProvider>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
         </HotelProvider>
       </AuthProvider>
     </QueryClientProvider>

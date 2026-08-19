@@ -3,16 +3,14 @@ import { api } from '../../lib/api';
 import { DEFAULT_ORG_ID } from '../../lib/propertyConfig';
 import { getTask, updateTask } from '../tasks/taskApi';
 import type { ChecklistItem, RoomAssignment, RoomStatus } from './types';
-import { DEFAULT_TIME_ZONE } from '../settings/timeZoneStore';
 
 export const HOUSEKEEPING_TASK_TYPE = 'HOUSEKEEPING';
 
-export const assignmentsKey = (hotelCode?: string, timeZone = DEFAULT_TIME_ZONE) => [
+export const assignmentsKey = (hotelCode?: string) => [
   'assignments',
   hotelCode ?? 'fallback',
   'me',
   'today',
-  timeZone,
 ];
 
 export const assignmentKey = (hotelCode: string | undefined, id: string) => [
@@ -26,6 +24,7 @@ function normalizeRoomStatus(status?: string | null): RoomStatus {
   if (value === 'COMPLETED' || value === 'DONE' || value === 'CLOSED' || value === 'READY') return 'READY';
   if (value === 'IN_PROGRESS' || value === 'CLEANING') return 'CLEANING';
   if (value === 'STAY_OVER' || value === 'STAYOVER') return 'STAY_OVER';
+  if (value === 'CHECKED_OUT' || value === 'CHECKEDOUT' || value === 'CHECKED OUT') return 'CHECKOUT';
   return 'CHECKOUT';
 }
 
@@ -39,6 +38,7 @@ function normalizeChecklistStatus(status?: string | null): ChecklistItem['status
   const value = (status ?? '').trim().toUpperCase();
   if (value === 'COMPLETED') return 'COMPLETED';
   if (value === 'IN_PROGRESS') return 'IN_PROGRESS';
+  if (value === 'SKIPPED') return 'SKIPPED';
   return 'WAITING';
 }
 
@@ -67,7 +67,7 @@ function mapChecklistItem(item: TaskChecklistItem, index: number): ChecklistItem
     id: checklistFallbackId(item, index),
     label: item.title,
     status,
-    done: status === 'COMPLETED',
+    done: status === 'COMPLETED' || status === 'SKIPPED',
     notes: item.notes,
   };
 }
@@ -81,6 +81,11 @@ export function mapTaskToAssignment(task: Task): RoomAssignment {
     String(task.id);
   const floor = stringField(additionalInfo, 'floor') ?? '';
   const roomType = stringField(additionalInfo, 'roomType') ?? stringField(additionalInfo, 'unitType');
+  const roomStatus =
+    stringField(additionalInfo, 'housekeepingStatus') ??
+    stringField(additionalInfo, 'roomStatus') ??
+    stringField(additionalInfo, 'status') ??
+    task.status;
 
   return {
     id: String(task.id),
@@ -90,7 +95,7 @@ export function mapTaskToAssignment(task: Task): RoomAssignment {
     floor,
     type: roomType,
     roomType,
-    status: normalizeRoomStatus(task.status),
+    status: normalizeRoomStatus(roomStatus),
     housekeeper: task.assigneeId ? { employeeId: task.assigneeId } : null,
     cleaningStartTime: null,
     cleaningEndTime: null,
@@ -98,11 +103,16 @@ export function mapTaskToAssignment(task: Task): RoomAssignment {
   };
 }
 
+function shouldShowHousekeepingAssignment(task: Task) {
+  const assignment = mapTaskToAssignment(task);
+  return assignment.status === 'CHECKOUT' || assignment.status === 'CLEANING';
+}
+
 function checklistPayload(checklist: ChecklistItem[]): TaskChecklistItem[] {
   return checklist.map((item) => ({
     id: item.id,
     title: item.label,
-    status: item.status === 'COMPLETED' ? 'COMPLETED' : 'WAITING',
+    status: item.status,
     notes: item.notes,
   }));
 }
@@ -114,18 +124,13 @@ function unpackHousekeepingTasks(payload: any): Task[] {
   return [];
 }
 
-export async function fetchAssignments(
-  hotelCode?: string,
-  timeZone = DEFAULT_TIME_ZONE,
-): Promise<RoomAssignment[]> {
+export async function fetchAssignments(hotelCode?: string): Promise<RoomAssignment[]> {
   if (!hotelCode) return [];
 
-  const response = await api.get<any>(`/api/v1/orgs/${DEFAULT_ORG_ID}/hotels/${hotelCode}/housekeeping/tasks/me/today`, {
-    params: { timeZone },
-  });
+  const response = await api.get<any>(`/api/v1/orgs/${DEFAULT_ORG_ID}/hotels/${hotelCode}/housekeeping/tasks/me/today`);
   const tasks = unpackHousekeepingTasks(response.data);
 
-  return tasks.map(mapTaskToAssignment);
+  return tasks.filter(shouldShowHousekeepingAssignment).map(mapTaskToAssignment);
 }
 
 export async function fetchAssignment(hotelCode: string | undefined, id: string): Promise<RoomAssignment | undefined> {

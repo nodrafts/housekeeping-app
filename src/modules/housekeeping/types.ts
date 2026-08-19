@@ -3,7 +3,7 @@ export type RoomStatus = 'STAY_OVER' | 'CHECKOUT' | 'CLEANING' | 'READY';
 export interface ChecklistItem {
   id: string;
   label: string;
-  status: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED';
+  status: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
   done: boolean;
   notes?: string;
   photoUri?: string;
