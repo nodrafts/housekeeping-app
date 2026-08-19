@@ -34,10 +34,6 @@ export function getApiErrorMessage(err: unknown): string {
   return 'Unknown error';
 }
 
-// Default org scoping header used by Property Management controllers.
-// Backend expects: X-Org-Id
-api.defaults.headers.common['X-Org-Id'] = 'e3ca60db-1094-442d-af38-c2c3ce8f239b';
-
 export function setAuthToken(token: string | null) {
   if (token) {
     api.defaults.headers.common.Authorization = `Bearer ${token}`;
