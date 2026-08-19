@@ -1,4 +1,16 @@
-export type TaskStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'DONE' | 'CANCELLED' | 'CLOSED';
+export type TaskStatus =
+  | 'OPEN'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'DONE'
+  | 'CANCELLED'
+  | 'CLOSED'
+  | 'check out'
+  | 'checkout'
+  | 'checked out'
+  | 'stay over'
+  | 'cleaning'
+  | 'ready';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type TaskChecklistStatus = 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
 

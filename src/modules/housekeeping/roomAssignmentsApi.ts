@@ -20,18 +20,19 @@ export const assignmentKey = (hotelCode: string | undefined, id: string) => [
 ];
 
 function normalizeRoomStatus(status?: string | null): RoomStatus {
-  const value = (status ?? '').trim().toUpperCase();
+  const value = (status ?? '').trim().toUpperCase().replace(/[-\s]+/g, '_');
   if (value === 'COMPLETED' || value === 'DONE' || value === 'CLOSED' || value === 'READY') return 'READY';
   if (value === 'IN_PROGRESS' || value === 'CLEANING') return 'CLEANING';
   if (value === 'STAY_OVER' || value === 'STAYOVER') return 'STAY_OVER';
-  if (value === 'CHECKED_OUT' || value === 'CHECKEDOUT' || value === 'CHECKED OUT') return 'CHECKOUT';
+  if (value === 'CHECKED_OUT' || value === 'CHECKEDOUT') return 'CHECKOUT';
   return 'CHECKOUT';
 }
 
 function taskStatusForRoomStatus(status: RoomStatus) {
-  if (status === 'READY') return 'COMPLETED';
-  if (status === 'CLEANING') return 'IN_PROGRESS';
-  return 'OPEN';
+  if (status === 'READY') return 'ready';
+  if (status === 'CLEANING') return 'cleaning';
+  if (status === 'STAY_OVER') return 'stay over';
+  return 'check out';
 }
 
 function normalizeChecklistStatus(status?: string | null): ChecklistItem['status'] {
@@ -86,6 +87,7 @@ export function mapTaskToAssignment(task: Task): RoomAssignment {
     stringField(additionalInfo, 'roomStatus') ??
     stringField(additionalInfo, 'status') ??
     task.status;
+  const cleaningOriginStatus = stringField(additionalInfo, 'cleaningOriginStatus');
 
   return {
     id: String(task.id),
@@ -99,13 +101,14 @@ export function mapTaskToAssignment(task: Task): RoomAssignment {
     housekeeper: task.assigneeId ? { employeeId: task.assigneeId } : null,
     cleaningStartTime: null,
     cleaningEndTime: null,
+    cleaningOriginStatus: cleaningOriginStatus ? normalizeRoomStatus(cleaningOriginStatus) : null,
     checklist: (task.checklist ?? []).map(mapChecklistItem),
   };
 }
 
 function shouldShowHousekeepingAssignment(task: Task) {
   const assignment = mapTaskToAssignment(task);
-  return assignment.status === 'CHECKOUT' || assignment.status === 'CLEANING';
+  return assignment.status === 'CHECKOUT' || assignment.status === 'STAY_OVER' || assignment.status === 'CLEANING';
 }
 
 function checklistPayload(checklist: ChecklistItem[]): TaskChecklistItem[] {

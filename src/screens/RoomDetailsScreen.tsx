@@ -62,6 +62,8 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
   );
   const isReady = data?.status === 'READY';
   const isCleaning = data?.status === 'CLEANING';
+  const finishStatus = data?.cleaningOriginStatus === 'STAY_OVER' ? 'STAY_OVER' : 'READY';
+  const finishLabel = finishStatus === 'STAY_OVER' ? 'Mark as Stay over' : 'Mark as Ready';
 
   const completeItem = (item: ChecklistItem) => {
     if (!data) return;
@@ -88,7 +90,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
   const completeRoom = () => {
     if (!data || hasIncompleteItems) return;
     updateStatus.mutate(
-      { hotelCode, assignment: data, status: 'READY', checklist },
+      { hotelCode, assignment: data, status: finishStatus, checklist },
       { onSuccess: () => navigation.goBack() },
     );
   };
@@ -237,7 +239,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
               <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
-                {updateStatus.isPending ? 'Saving...' : 'Mark as Ready'}
+                {updateStatus.isPending ? 'Saving...' : finishLabel}
               </Text>
             </View>
           </TouchableOpacity>
