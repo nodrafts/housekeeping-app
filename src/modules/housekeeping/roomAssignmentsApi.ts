@@ -1,7 +1,7 @@
 import type { Task, TaskChecklistItem } from '../tasks/types';
 import { api } from '../../lib/api';
 import { DEFAULT_ORG_ID } from '../../lib/propertyConfig';
-import { getTask, updateTask } from '../tasks/taskApi';
+import { getTask } from '../tasks/taskApi';
 import type { ChecklistItem, RoomAssignment, RoomStatus } from './types';
 
 export const HOUSEKEEPING_TASK_TYPE = 'HOUSEKEEPING';
@@ -83,15 +83,16 @@ export function mapTaskToAssignment(task: Task): RoomAssignment {
   const floor = stringField(additionalInfo, 'floor') ?? '';
   const roomType = stringField(additionalInfo, 'roomType') ?? stringField(additionalInfo, 'unitType');
   const roomStatus =
+    task.status ??
     stringField(additionalInfo, 'housekeepingStatus') ??
     stringField(additionalInfo, 'roomStatus') ??
-    stringField(additionalInfo, 'status') ??
-    task.status;
+    stringField(additionalInfo, 'status');
   const cleaningOriginStatus = stringField(additionalInfo, 'cleaningOriginStatus');
 
   return {
     id: String(task.id),
     taskId: task.id,
+    hotelCode: task.hotelCode,
     roomId: roomNumber,
     roomNumber,
     floor,
@@ -145,11 +146,21 @@ export async function fetchAssignment(hotelCode: string | undefined, id: string)
 export async function updateHousekeepingTask(
   assignment: RoomAssignment,
   updates: { status?: RoomStatus; checklist?: ChecklistItem[] },
+  hotelCode?: string,
 ): Promise<RoomAssignment> {
   const taskId = assignment.taskId ?? Number(assignment.id);
-  const updatedTask = await updateTask(taskId, {
-    ...(updates.status ? { status: taskStatusForRoomStatus(updates.status) } : {}),
-    ...(updates.checklist ? { checklist: checklistPayload(updates.checklist) } : {}),
+  const selectedHotelCode = hotelCode ?? assignment.hotelCode;
+  if (!selectedHotelCode) {
+    throw new Error('Hotel code is required to update housekeeping work.');
+  }
+
+  await api.put<any>(`/api/v1/orgs/${DEFAULT_ORG_ID}/hotels/${selectedHotelCode}/housekeeping/room`, {
+    roomNumber: assignment.roomNumber,
+    status: taskStatusForRoomStatus(updates.status ?? assignment.status),
+    employeeId: assignment.housekeeper?.employeeId,
+    checklist: checklistPayload(updates.checklist ?? assignment.checklist),
   });
+
+  const updatedTask = await getTask(taskId);
   return mapTaskToAssignment(updatedTask);
 }

@@ -19,6 +19,7 @@ export interface Housekeeper {
 export interface RoomAssignment {
   id: string; // task id, kept as id for existing navigation
   taskId?: number;
+  hotelCode?: string;
   roomId: string;
   roomNumber: string;
   floor: string;

@@ -56,8 +56,8 @@ export function useUpdateChecklist() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ assignment, checklist }: UpdateChecklistPayload) => {
-      return updateHousekeepingTask(assignment, { checklist });
+    mutationFn: async ({ hotelCode, assignment, checklist }: UpdateChecklistPayload) => {
+      return updateHousekeepingTask(assignment, { checklist }, hotelCode);
     },
     onSuccess: (assignment) => {
       writeAssignmentToCaches(queryClient, assignment);
@@ -70,22 +70,22 @@ export function useUpdateStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ assignment, status, checklist }: UpdateStatusPayload) => {
+    mutationFn: async ({ hotelCode, assignment, status, checklist }: UpdateStatusPayload) => {
       const finalChecklist = checklist ?? assignment.checklist;
       if (needsCleaningStep(assignment.status, status)) {
         const cleaningAssignment = await updateHousekeepingTask(assignment, {
           status: 'CLEANING',
           checklist: finalChecklist,
-        });
+        }, hotelCode);
         return updateHousekeepingTask(cleaningAssignment, {
           status: 'READY',
           checklist: finalChecklist,
-        });
+        }, hotelCode);
       }
       return updateHousekeepingTask(assignment, {
         status,
         checklist: finalChecklist,
-      });
+      }, hotelCode);
     },
     onSuccess: (assignment) => {
       writeAssignmentToCaches(queryClient, assignment);
