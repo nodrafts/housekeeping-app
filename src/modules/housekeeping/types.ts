@@ -17,8 +17,7 @@ export interface Housekeeper {
 }
 
 export interface RoomAssignment {
-  id: string; // task id, kept as id for existing navigation
-  taskId?: number;
+  id: string; // room number, kept as id for existing navigation
   roomId: string;
   roomNumber: string;
   floor: string;
@@ -29,4 +28,30 @@ export interface RoomAssignment {
   cleaningStartTime?: string | null;
   cleaningEndTime?: string | null;
   checklist: ChecklistItem[];
+}
+
+export interface HousekeepingHistoryEntry {
+  action: string;
+  changes: Record<string, unknown>;
+  changedBy?: string | null;
+  changedByType?: string | null;
+  dateTime: string;
+}
+
+export interface HousekeepingHistoryTask {
+  taskId: number;
+  status: string;
+  housekeeper?: Housekeeper | null;
+  cleaningStartTime?: string | null;
+  cleaningEndTime?: string | null;
+  createdAt: string;
+  completedAt?: string | null;
+  history: HousekeepingHistoryEntry[];
+}
+
+export interface HousekeepingRoomHistory {
+  roomNo: string;
+  floor?: number | null;
+  date: string;
+  tasks: HousekeepingHistoryTask[];
 }
