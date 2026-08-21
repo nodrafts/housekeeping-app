@@ -3,7 +3,9 @@ import type { ChecklistItem, RoomAssignment, RoomStatus } from './types';
 import {
   assignmentKey,
   fetchAssignment,
-  updateHousekeepingTask,
+  fetchRoomHistory,
+  roomHistoryKey,
+  updateHousekeepingRoom,
 } from './roomAssignmentsApi';
 
 export function useAssignment(id: string, hotelCode?: string) {
@@ -11,6 +13,14 @@ export function useAssignment(id: string, hotelCode?: string) {
     queryKey: assignmentKey(hotelCode, id),
     queryFn: () => fetchAssignment(hotelCode, id),
     enabled: !!id && !!hotelCode,
+  });
+}
+
+export function useRoomHistory(roomNumber: string, date: string, hotelCode?: string) {
+  return useQuery({
+    queryKey: roomHistoryKey(hotelCode, roomNumber, date),
+    queryFn: () => fetchRoomHistory(hotelCode, roomNumber, date),
+    enabled: !!roomNumber && !!date && !!hotelCode,
   });
 }
 
@@ -56,12 +66,13 @@ export function useUpdateChecklist() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ assignment, checklist }: UpdateChecklistPayload) => {
-      return updateHousekeepingTask(assignment, { checklist });
+    mutationFn: async ({ hotelCode, assignment, checklist }: UpdateChecklistPayload) => {
+      return updateHousekeepingRoom(assignment, { checklist }, hotelCode);
     },
     onSuccess: (assignment) => {
       writeAssignmentToCaches(queryClient, assignment);
       queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['housekeeping-room-history'] });
     },
   });
 }
@@ -70,26 +81,27 @@ export function useUpdateStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ assignment, status, checklist }: UpdateStatusPayload) => {
+    mutationFn: async ({ hotelCode, assignment, status, checklist }: UpdateStatusPayload) => {
       const finalChecklist = checklist ?? assignment.checklist;
       if (needsCleaningStep(assignment.status, status)) {
-        const cleaningAssignment = await updateHousekeepingTask(assignment, {
+        const cleaningAssignment = await updateHousekeepingRoom(assignment, {
           status: 'CLEANING',
           checklist: finalChecklist,
-        });
-        return updateHousekeepingTask(cleaningAssignment, {
+        }, hotelCode);
+        return updateHousekeepingRoom(cleaningAssignment, {
           status: 'READY',
           checklist: finalChecklist,
-        });
+        }, hotelCode);
       }
-      return updateHousekeepingTask(assignment, {
+      return updateHousekeepingRoom(assignment, {
         status,
         checklist: finalChecklist,
-      });
+      }, hotelCode);
     },
     onSuccess: (assignment) => {
       writeAssignmentToCaches(queryClient, assignment);
       queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['housekeeping-room-history'] });
     },
   });
 }
