@@ -27,6 +27,7 @@ export interface RoomAssignment {
   housekeeper?: Housekeeper | null;
   cleaningStartTime?: string | null;
   cleaningEndTime?: string | null;
+  dueDate?: string | null;
   checklist: ChecklistItem[];
 }
 

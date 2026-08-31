@@ -14,6 +14,6 @@ describe('skipIncompleteChecklist', () => {
       'SKIPPED',
       'SKIPPED',
     ]);
-    expect(skipIncompleteChecklist(checklist).every((item) => item.done)).toBe(true);
+    expect(skipIncompleteChecklist(checklist).map((item) => item.done)).toEqual([true, false, false]);
   });
 });

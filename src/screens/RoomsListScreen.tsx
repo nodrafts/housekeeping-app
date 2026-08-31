@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Platform,
   StatusBar,
@@ -18,6 +19,9 @@ import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { useAllIncidents, getOpenIncidentsForRoom } from '../modules/housekeeping/useIncidents';
 import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 import { colors, radii } from '../lib/theme';
+import { useTranslation } from 'react-i18next';
+import { useUpdateStatus } from '../modules/housekeeping/useAssignment';
+import { formatCleaningElapsed } from '../modules/housekeeping/cleaningTimer';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'RoomsList'> | any;
 
@@ -34,20 +38,44 @@ function progressFor(checklist: { done: boolean }[]) {
   return Math.round((handled / total) * 100);
 }
 
-function statusLabel(status: string) {
-  if (status === 'READY') return 'Ready';
-  if (status === 'CLEANING') return 'Cleaning';
-  if (status === 'STAY_OVER') return 'Stay over';
-  return 'Checkout';
-}
-
 export function RoomsListScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { selectedHotel } = useHotelStore();
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
   const [selectedDate] = useState(dateToInput(new Date()));
   const { data = [], isLoading, refetch, isFetching } = useAssignments(hotelCode);
   const { data: allIncidents = [] } = useAllIncidents(hotelCode);
+  const updateStatus = useUpdateStatus();
+  const [startingId, setStartingId] = useState<string | null>(null);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const openRoom = (item: (typeof data)[number]) => {
+    if (item.status === 'CLEANING' || item.status === 'READY') {
+      navigation.navigate('RoomDetails', { assignmentId: item.id });
+      return;
+    }
+
+    setStartingId(item.id);
+    updateStatus.mutate(
+      { hotelCode, assignment: item, status: 'CLEANING', checklist: item.checklist },
+      {
+        onSuccess: () => {
+          setStartingId(null);
+          navigation.navigate('RoomDetails', { assignmentId: item.id });
+        },
+        onError: () => {
+          setStartingId(null);
+          Alert.alert(t('rooms.couldNotStart'));
+        },
+      },
+    );
+  };
 
   return (
     <Screen>
@@ -63,11 +91,11 @@ export function RoomsListScreen({ navigation }: Props) {
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: colors.foreground }}>Housekeeping</Text>
+            <Text style={{ fontSize: 22, fontWeight: '800', color: colors.foreground }}>{t('rooms.title')}</Text>
             <View style={{ marginTop: 6, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Icon name="sparkles" size={15} color={colors.primary} />
               <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>
-                Today {selectedDate}
+                {t('rooms.today', { date: selectedDate })}
               </Text>
             </View>
           </View>
@@ -112,9 +140,9 @@ export function RoomsListScreen({ navigation }: Props) {
                 backgroundColor: colors.card,
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.foreground }}>No rooms due</Text>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.foreground }}>{t('rooms.noRooms')}</Text>
               <Text style={{ marginTop: 4, fontSize: 13, color: colors.mutedForeground }}>
-                Today has no housekeeping tasks assigned for {hotelCode}.
+                {t('rooms.noRoomsDescription', { hotelCode })}
               </Text>
             </View>
           }
@@ -123,10 +151,13 @@ export function RoomsListScreen({ navigation }: Props) {
             const openIncidents = getOpenIncidentsForRoom(allIncidents, item.roomNumber);
             const done = item.status === 'READY';
             const inProgress = item.status === 'CLEANING';
+            const elapsed = inProgress ? formatCleaningElapsed(item.cleaningStartTime, now) : null;
+            const isStarting = startingId === item.id;
 
             return (
               <TouchableOpacity
-                onPress={() => navigation.navigate('RoomDetails', { assignmentId: item.id })}
+                onPress={() => openRoom(item)}
+                disabled={startingId !== null}
                 activeOpacity={0.78}
                 style={{
                   marginBottom: 12,
@@ -140,10 +171,10 @@ export function RoomsListScreen({ navigation }: Props) {
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View style={{ flex: 1, paddingRight: 12 }}>
                     <Text style={{ fontSize: 20, fontWeight: '800', color: colors.foreground }}>
-                      Room {item.roomNumber}
+                      {t('rooms.room', { number: item.roomNumber })}
                     </Text>
                     <Text style={{ marginTop: 2, fontSize: 13, color: colors.mutedForeground }}>
-                      {item.floor ? `Floor ${item.floor}` : 'Floor not set'}
+                      {item.floor ? t('rooms.floor', { floor: item.floor }) : t('rooms.floorMissing')}
                       {item.type ? ` - ${item.type}` : ''}
                     </Text>
                   </View>
@@ -156,7 +187,9 @@ export function RoomsListScreen({ navigation }: Props) {
                     }}
                   >
                     <Text style={{ fontSize: 11, fontWeight: '800', color: done ? colors.foreground : inProgress ? '#92400e' : colors.foreground }}>
-                      {statusLabel(item.status)}
+                      {isStarting
+                        ? t('rooms.starting')
+                        : t(item.status === 'READY' ? 'status.ready' : item.status === 'CLEANING' ? 'status.cleaning' : item.status === 'STAY_OVER' ? 'status.stayOver' : 'status.checkout')}
                     </Text>
                   </View>
                 </View>
@@ -165,10 +198,12 @@ export function RoomsListScreen({ navigation }: Props) {
                   <View style={{ width: `${progress}%`, height: '100%', borderRadius: radii.pill, backgroundColor: done ? colors.success : colors.primary }} />
                 </View>
                 <View style={{ marginTop: 8, flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 12, color: colors.mutedForeground }}>{progress}% complete</Text>
+                  <Text style={{ fontSize: 12, color: colors.mutedForeground }}>
+                    {elapsed ? t('rooms.elapsed', { time: elapsed }) : t('rooms.completePercent', { percent: progress })}
+                  </Text>
                   {openIncidents.length > 0 ? (
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#f97316' }}>
-                      {openIncidents.length} issue{openIncidents.length === 1 ? '' : 's'}
+                      {t('rooms.issues', { count: openIncidents.length })}
                     </Text>
                   ) : null}
                 </View>
