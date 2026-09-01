@@ -164,7 +164,7 @@ export function DashboardScreen({ navigation }: Partial<Props>) {
             return (
               <TouchableOpacity
               key={a.id}
-              onPress={() => nav.navigate('RoomDetails', { assignmentId: a.id })}
+              onPress={() => nav.navigate('RoomDetails', { assignmentId: a.id, dueDate: a.dueDate ?? undefined })}
               activeOpacity={0.75}
               style={{ paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: idx < assignments.length - 1 ? 1 : 0, borderBottomColor: '#f3f4f6' }}
             >

@@ -23,7 +23,7 @@ export type AppStackParamList = {
   StaffTabs: undefined;
   AdminTabs: undefined;
   // Stack screens (pushed on top of tabs)
-  RoomDetails: { assignmentId: string };
+  RoomDetails: { assignmentId: string; dueDate?: string };
   HotelSelect: undefined;
   ReportIssue: { assignmentId: string };
   Messaging: undefined;

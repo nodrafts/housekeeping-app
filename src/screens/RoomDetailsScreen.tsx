@@ -11,7 +11,7 @@ import { AppStackParamList } from '../navigation/types';
 import { Screen } from '../components/layout/Screen';
 import { Icon } from '../components/ui/Icon';
 import { colors, radii } from '../lib/theme';
-import { useAssignment, useRoomHistory, useUpdateChecklist, useUpdateStatus } from '../modules/housekeeping/useAssignment';
+import { useAssignment, useUpdateChecklist, useUpdateStatus } from '../modules/housekeeping/useAssignment';
 import type { ChecklistItem } from '../modules/housekeeping/types';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { ReportIssueModal } from '../components/ReportIssueModal';
@@ -37,23 +37,13 @@ function setChecklistStatus(checklist: ChecklistItem[], itemId: string, status: 
   ));
 }
 
-function localDate() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 export function RoomDetailsScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
-  const { assignmentId } = route.params;
+  const { assignmentId, dueDate } = route.params;
   const { selectedHotel } = useHotelStore();
   const { user } = useAuth();
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
-  const { data, isLoading } = useAssignment(assignmentId, hotelCode);
-  const historyDate = useMemo(localDate, []);
-  const { data: roomHistory } = useRoomHistory(assignmentId, historyDate, hotelCode);
+  const { data, isLoading } = useAssignment(assignmentId, hotelCode, dueDate);
   const updateStatus = useUpdateStatus();
   const updateChecklist = useUpdateChecklist();
   const [helpOpen, setHelpOpen] = useState(false);
@@ -139,31 +129,29 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
           <View style={{ width: `${progress}%`, height: '100%', borderRadius: radii.pill, backgroundColor: colors.primary }} />
         </View>
         <Text style={{ marginTop: 4, fontSize: 11, color: colors.mutedForeground }}>{t('rooms.completePercent', { percent: progress })}</Text>
-        <View
-          style={{
-            marginTop: 10,
-            alignSelf: 'flex-start',
-            borderRadius: radii.pill,
-            backgroundColor: isCleaning ? '#fef3c7' : isReady ? '#dcfce7' : colors.muted,
-            paddingHorizontal: 10,
-            paddingVertical: 5,
-          }}
-        >
-          <Text
+        <View style={{ marginTop: 10, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View
             style={{
-              fontSize: 11,
-              fontWeight: '800',
-              color: isCleaning ? '#92400e' : isReady ? '#166534' : colors.foreground,
+              borderRadius: radii.pill,
+              backgroundColor: isCleaning ? '#fef3c7' : isReady ? '#dcfce7' : colors.muted,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
             }}
           >
-            {t(isCleaning ? 'status.cleaning' : isReady ? 'status.ready' : data.status === 'STAY_OVER' ? 'status.stayOver' : 'status.checkout')}
-          </Text>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '800',
+                color: isCleaning ? '#92400e' : isReady ? '#166534' : colors.foreground,
+              }}
+            >
+              {t(isCleaning ? 'status.cleaning' : isReady ? 'status.ready' : data.status === 'STAY_OVER' ? 'status.stayOver' : 'status.checkout')}
+            </Text>
+          </View>
+          {elapsed ? (
+            <Text style={{ fontSize: 13, fontWeight: '800', color: '#92400e' }}>{elapsed}</Text>
+          ) : null}
         </View>
-        {elapsed ? (
-          <Text style={{ marginTop: 7, fontSize: 13, fontWeight: '800', color: '#92400e' }}>
-            {t('rooms.elapsed', { time: elapsed })}
-          </Text>
-        ) : null}
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 96 }}>
@@ -261,33 +249,6 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
             </View>
           </TouchableOpacity>
         )}
-
-        {roomHistory?.tasks?.length ? (
-          <View style={{ marginTop: 20 }}>
-            <Text style={{ marginBottom: 8, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', color: colors.mutedForeground }}>
-              {t('activity.today')}
-            </Text>
-            {roomHistory.tasks.flatMap((task) => task.history).slice(0, 5).map((entry, index) => (
-              <View
-                key={`${entry.dateTime}-${index}`}
-                style={{
-                  marginBottom: 8,
-                  borderLeftWidth: 2,
-                  borderLeftColor: colors.primary,
-                  paddingLeft: 10,
-                  paddingVertical: 3,
-                }}
-              >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.foreground }}>
-                  {entry.action.toLowerCase().replace(/_/g, ' ')}
-                </Text>
-                <Text style={{ marginTop: 2, fontSize: 11, color: colors.mutedForeground }}>
-                  {new Date(entry.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
 
         <TouchableOpacity
           onPress={() => setHelpOpen(true)}

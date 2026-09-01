@@ -16,8 +16,8 @@ type HousekeepingRoomResponse = {
 };
 
 export const assignmentsKey = (hotelCode?: string) => ['assignments', hotelCode ?? 'fallback', 'me'];
-export const assignmentKey = (hotelCode: string | undefined, roomNumber: string) => [
-  'assignment', hotelCode ?? 'fallback', roomNumber,
+export const assignmentKey = (hotelCode: string | undefined, roomNumber: string, dueDate?: string) => [
+  'assignment', hotelCode ?? 'fallback', roomNumber, dueDate ?? 'latest',
 ];
 export const roomHistoryKey = (hotelCode: string | undefined, roomNumber: string, date: string) => [
   'housekeeping-room-history', hotelCode ?? 'fallback', roomNumber, date,
@@ -97,10 +97,12 @@ export async function fetchAssignments(hotelCode?: string): Promise<RoomAssignme
 export async function fetchAssignment(
   hotelCode: string | undefined,
   roomNumber: string,
+  dueDate?: string,
 ): Promise<RoomAssignment | undefined> {
   if (!hotelCode || !roomNumber) return undefined;
   const response = await api.get<any>(
     `/api/v1/orgs/${DEFAULT_ORG_ID}/hotels/${hotelCode}/housekeeping/room/${encodeURIComponent(roomNumber)}`,
+    dueDate ? { params: { dueDate } } : undefined,
   );
   return mapRoomToAssignment(unpackData<HousekeepingRoomResponse>(response.data));
 }
