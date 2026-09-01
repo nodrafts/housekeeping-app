@@ -68,7 +68,9 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
   const progress = useMemo(() => progressFor(checklist), [checklist]);
   const isReady = data?.status === 'READY';
   const isCleaning = data?.status === 'CLEANING';
-  const elapsed = isCleaning ? formatCleaningElapsed(data?.cleaningStartTime, now) : null;
+  const elapsed = isCleaning
+    ? formatCleaningElapsed(data?.cleaningStartTime, now, data?.dueDate ?? dueDate)
+    : null;
 
   const toggleItem = (item: ChecklistItem) => {
     if (!data) return;
