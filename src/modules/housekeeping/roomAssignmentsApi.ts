@@ -11,6 +11,7 @@ type HousekeepingRoomResponse = {
   roomType?: string | null;
   cleaningStartTime?: string | null;
   cleaningEndTime?: string | null;
+  dueDate?: string | null;
   checklist?: HousekeepingChecklistItemResponse[] | null;
 };
 
@@ -54,7 +55,7 @@ function mapChecklistItem(item: HousekeepingChecklistItemResponse): ChecklistIte
     id: String(item.id),
     label: item.title,
     status,
-    done: status === 'COMPLETED' || status === 'SKIPPED',
+    done: status === 'COMPLETED',
   };
 }
 
@@ -73,6 +74,7 @@ export function mapRoomToAssignment(room: HousekeepingRoomResponse): RoomAssignm
     } : null,
     cleaningStartTime: room.cleaningStartTime ?? null,
     cleaningEndTime: room.cleaningEndTime ?? null,
+    dueDate: room.dueDate ?? null,
     checklist: (room.checklist ?? []).map(mapChecklistItem),
   };
 }
@@ -127,6 +129,7 @@ export async function updateHousekeepingRoom(
       roomNumber: assignment.roomNumber,
       status: roomStatusPayload(updates.status ?? assignment.status),
       employeeId: assignment.housekeeper?.employeeId ?? null,
+      ...(assignment.dueDate ? { dueDate: assignment.dueDate } : {}),
       ...(updates.checklist ? { checklist: checklistPayload(updates.checklist) } : {}),
     },
   );

@@ -13,10 +13,12 @@ import { AppStackParamList } from '../navigation/types';
 import { useHotels } from '../modules/hotel/useHotels';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { useAuth } from '../modules/auth/useAuth';
+import { useTranslation } from 'react-i18next';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'HotelSelect'>;
 
 export function HotelSelectScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const fallbackHotels = useMemo(() => {
     const seen = new Set<string>();
@@ -63,19 +65,19 @@ export function HotelSelectScreen({ navigation }: Props) {
     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <View style={{ width: '100%', backgroundColor: '#ffffff', borderRadius: 16, padding: 24 }}>
         <Text style={{ fontSize: 18, fontWeight: '700', color: '#0f172a', marginBottom: 4 }}>
-          Select your property
+          {t('auth.selectHotel')}
         </Text>
         <Text style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>
-          Choose the hotel you are working at today.
+          {t('auth.selectHotelSubtitle')}
         </Text>
 
         {isLoading && hotels.length === 0 ? (
           <ActivityIndicator size="small" color="#2563eb" style={{ marginVertical: 16 }} />
         ) : showLoadError ? (
           <View style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 13, color: '#dc2626', marginBottom: 8 }}>Could not load properties.</Text>
+            <Text style={{ fontSize: 13, color: '#dc2626', marginBottom: 8 }}>{t('auth.loadHotelsFailed')}</Text>
             <TouchableOpacity onPress={() => refetch()}>
-              <Text style={{ fontSize: 13, color: '#2563eb' }}>Tap to retry</Text>
+              <Text style={{ fontSize: 13, color: '#2563eb' }}>{t('auth.tapRetry')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -97,7 +99,7 @@ export function HotelSelectScreen({ navigation }: Props) {
               }}
             >
               <Text style={{ fontSize: 14, color: pending ? '#111827' : '#9ca3af', flex: 1, paddingRight: 8 }} numberOfLines={1}>
-                {pending?.name ?? 'Select a property'}
+                {pending?.name ?? t('auth.selectHotel')}
               </Text>
               <Text style={{ fontSize: 12, color: '#6b7280' }}>▾</Text>
             </TouchableOpacity>
@@ -154,7 +156,7 @@ export function HotelSelectScreen({ navigation }: Props) {
             opacity: pending ? 1 : 0.4,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#ffffff' }}>Continue</Text>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: '#ffffff' }}>{t('common.continue')}</Text>
         </TouchableOpacity>
       </View>
     </View>

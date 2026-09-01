@@ -58,10 +58,6 @@ function writeAssignmentToCaches(queryClient: ReturnType<typeof useQueryClient>,
   );
 }
 
-function needsCleaningStep(current: RoomStatus, next: RoomStatus) {
-  return next === 'READY' && (current === 'CHECKOUT' || current === 'STAY_OVER');
-}
-
 export function useUpdateChecklist() {
   const queryClient = useQueryClient();
 
@@ -83,16 +79,6 @@ export function useUpdateStatus() {
   return useMutation({
     mutationFn: async ({ hotelCode, assignment, status, checklist }: UpdateStatusPayload) => {
       const finalChecklist = checklist ?? assignment.checklist;
-      if (needsCleaningStep(assignment.status, status)) {
-        const cleaningAssignment = await updateHousekeepingRoom(assignment, {
-          status: 'CLEANING',
-          checklist: finalChecklist,
-        }, hotelCode);
-        return updateHousekeepingRoom(cleaningAssignment, {
-          status: 'READY',
-          checklist: finalChecklist,
-        }, hotelCode);
-      }
       return updateHousekeepingRoom(assignment, {
         status,
         checklist: finalChecklist,

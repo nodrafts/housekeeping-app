@@ -18,6 +18,8 @@ import { ReportIssueModal } from '../components/ReportIssueModal';
 import { useAuth } from '../modules/auth/useAuth';
 import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 import { skipIncompleteChecklist } from '../modules/housekeeping/checklist';
+import { useTranslation } from 'react-i18next';
+import { formatCleaningElapsed } from '../modules/housekeeping/cleaningTimer';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'RoomDetails'>;
 
@@ -30,7 +32,7 @@ function progressFor(checklist: ChecklistItem[]) {
 function setChecklistStatus(checklist: ChecklistItem[], itemId: string, status: ChecklistItem['status']) {
   return checklist.map((item) => (
     item.id === itemId
-      ? { ...item, status, done: status === 'COMPLETED' || status === 'SKIPPED' }
+      ? { ...item, status, done: status === 'COMPLETED' }
       : item
   ));
 }
@@ -44,6 +46,7 @@ function localDate() {
 }
 
 export function RoomDetailsScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { assignmentId } = route.params;
   const { selectedHotel } = useHotelStore();
   const { user } = useAuth();
@@ -55,6 +58,12 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
   const updateChecklist = useUpdateChecklist();
   const [helpOpen, setHelpOpen] = useState(false);
   const [localChecklist, setLocalChecklist] = useState<ChecklistItem[] | null>(null);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (data?.checklist) {
@@ -69,26 +78,19 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
   const progress = useMemo(() => progressFor(checklist), [checklist]);
   const isReady = data?.status === 'READY';
   const isCleaning = data?.status === 'CLEANING';
+  const elapsed = isCleaning ? formatCleaningElapsed(data?.cleaningStartTime, now) : null;
 
-  const completeItem = (item: ChecklistItem) => {
+  const toggleItem = (item: ChecklistItem) => {
     if (!data) return;
-    const nextChecklist = setChecklistStatus(localChecklist ?? data.checklist, item.id, 'COMPLETED');
+    const nextStatus = item.status === 'COMPLETED' ? 'SKIPPED' : 'COMPLETED';
+    const nextChecklist = setChecklistStatus(localChecklist ?? data.checklist, item.id, nextStatus);
     setLocalChecklist(nextChecklist);
-
-    if (!isCleaning) {
-      updateStatus.mutate(
-        { hotelCode, assignment: data, status: 'CLEANING', checklist: nextChecklist },
-        {
-          onSuccess: (assignment) => setLocalChecklist(assignment.checklist),
-          onError: () => setLocalChecklist(data.checklist),
-        },
-      );
-      return;
-    }
-
     updateChecklist.mutate(
       { hotelCode, assignment: data, checklist: nextChecklist },
-      { onError: () => setLocalChecklist(data.checklist) },
+      {
+        onSuccess: (assignment) => setLocalChecklist(assignment.checklist),
+        onError: () => setLocalChecklist(data.checklist),
+      },
     );
   };
 
@@ -127,16 +129,16 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
         }}
       >
         <Text style={{ fontSize: 22, fontWeight: '800', color: colors.foreground }}>
-          Room {data.roomNumber}
+          {t('rooms.room', { number: data.roomNumber })}
         </Text>
         <Text style={{ marginTop: 4, fontSize: 13, color: colors.mutedForeground }}>
-          {data.floor ? `Floor ${data.floor}` : 'Floor not set'}
+          {data.floor ? t('rooms.floor', { floor: data.floor }) : t('rooms.floorMissing')}
           {data.type ? ` - ${data.type}` : ''}
         </Text>
         <View style={{ marginTop: 12, height: 6, borderRadius: radii.pill, overflow: 'hidden', backgroundColor: colors.border }}>
           <View style={{ width: `${progress}%`, height: '100%', borderRadius: radii.pill, backgroundColor: colors.primary }} />
         </View>
-        <Text style={{ marginTop: 4, fontSize: 11, color: colors.mutedForeground }}>{progress}% complete</Text>
+        <Text style={{ marginTop: 4, fontSize: 11, color: colors.mutedForeground }}>{t('rooms.completePercent', { percent: progress })}</Text>
         <View
           style={{
             marginTop: 10,
@@ -154,14 +156,19 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
               color: isCleaning ? '#92400e' : isReady ? '#166534' : colors.foreground,
             }}
           >
-            {isCleaning ? 'Cleaning' : isReady ? 'Ready' : 'Checkout'}
+            {t(isCleaning ? 'status.cleaning' : isReady ? 'status.ready' : data.status === 'STAY_OVER' ? 'status.stayOver' : 'status.checkout')}
           </Text>
         </View>
+        {elapsed ? (
+          <Text style={{ marginTop: 7, fontSize: 13, fontWeight: '800', color: '#92400e' }}>
+            {t('rooms.elapsed', { time: elapsed })}
+          </Text>
+        ) : null}
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 96 }}>
         <Text style={{ marginBottom: 8, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', color: colors.mutedForeground }}>
-          Checklist
+          {t('checklist.title')}
         </Text>
 
         {checklist.map((item, index) => {
@@ -189,12 +196,12 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                   color: colors.foreground,
                 }}
               >
-                {item.label}
+                {t(`checklistItems.${item.id}`, { defaultValue: item.label })}
               </Text>
 
               <TouchableOpacity
-                onPress={() => completeItem(item)}
-                disabled={updateChecklist.isPending || updateStatus.isPending || isReady || done || skipped}
+                onPress={() => toggleItem(item)}
+                disabled={updateChecklist.isPending || updateStatus.isPending || isReady}
                 style={{
                   minHeight: 42,
                   borderRadius: radii.lg,
@@ -203,7 +210,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                   backgroundColor: done ? colors.selected : colors.card,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  opacity: updateChecklist.isPending || updateStatus.isPending || isReady || done || skipped ? 0.72 : 1,
+                  opacity: updateChecklist.isPending || updateStatus.isPending || isReady ? 0.72 : 1,
                   paddingHorizontal: 12,
                 }}
               >
@@ -212,7 +219,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
                   adjustsFontSizeToFit
                   style={{ fontSize: 13, fontWeight: '800', color: done ? colors.primary : colors.foreground }}
                 >
-                  {done ? 'Completed' : skipped ? 'Skipped' : 'Mark as completed'}
+                  {done ? t('checklist.completed') : skipped ? t('checklist.skipped') : t('checklist.markCompleted')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -230,7 +237,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
               backgroundColor: '#dcfce7',
             }}
           >
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#166534' }}>Room is Ready</Text>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: '#166534' }}>{t('checklist.roomReady')}</Text>
           </View>
         ) : (
           <TouchableOpacity
@@ -249,7 +256,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={2.5} />
               <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
-                {updateStatus.isPending ? 'Saving...' : 'Mark as Ready'}
+                {updateStatus.isPending ? t('common.saving') : t('checklist.markReady')}
               </Text>
             </View>
           </TouchableOpacity>
@@ -258,7 +265,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
         {roomHistory?.tasks?.length ? (
           <View style={{ marginTop: 20 }}>
             <Text style={{ marginBottom: 8, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', color: colors.mutedForeground }}>
-              Today's activity
+              {t('activity.today')}
             </Text>
             {roomHistory.tasks.flatMap((task) => task.history).slice(0, 5).map((entry, index) => (
               <View
@@ -297,7 +304,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Icon name="alert-circle" size={17} color={colors.foreground} />
-            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.foreground }}>Report an Issue</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.foreground }}>{t('issue.report')}</Text>
           </View>
         </TouchableOpacity>
       </ScrollView>

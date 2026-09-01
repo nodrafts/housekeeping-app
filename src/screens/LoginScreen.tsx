@@ -13,6 +13,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
 import { useAuth } from '../modules/auth/useAuth';
 import { colors, radii } from '../lib/theme';
+import { useTranslation } from 'react-i18next';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -42,6 +43,7 @@ function LogoMark() {
 }
 
 export function LoginScreen({}: Props) {
+  const { t } = useTranslation();
   const { login, loading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -74,7 +76,7 @@ export function LoginScreen({}: Props) {
                 </Text>
               </View>
               <Text style={{ marginTop: 8, fontSize: 18, fontWeight: '700', color: colors.foreground }}>
-                Housekeeping
+                {t('navigation.housekeeping')}
               </Text>
             </View>
 
@@ -95,14 +97,14 @@ export function LoginScreen({}: Props) {
               }}
             >
               <Text style={{ fontSize: 26, fontWeight: '800', color: colors.foreground, marginBottom: 8 }}>
-                Sign in
+                {t('auth.signIn')}
               </Text>
               <Text style={{ fontSize: 15, lineHeight: 22, color: colors.mutedForeground, marginBottom: 24 }}>
-                Enter your email and password below to log into your account.
+                {t('auth.subtitle')}
               </Text>
 
               <Text style={{ fontSize: 14, fontWeight: '700', color: colors.foreground, marginBottom: 8 }}>
-                Email
+                {t('auth.email')}
               </Text>
               <TextInput
                 value={email}
@@ -124,13 +126,13 @@ export function LoginScreen({}: Props) {
               />
 
               <Text style={{ fontSize: 14, fontWeight: '700', color: colors.foreground, marginTop: 16, marginBottom: 8 }}>
-                Password
+                {t('auth.password')}
               </Text>
               <TextInput
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
-                placeholder="Password"
+                placeholder={t('auth.password')}
                 placeholderTextColor={colors.mutedForeground}
                 style={{
                   height: 48,
@@ -146,7 +148,7 @@ export function LoginScreen({}: Props) {
 
               {error ? (
                 <Text style={{ marginTop: 10, color: colors.destructive, fontSize: 13, fontWeight: '600' }}>
-                  {error}
+                  {t('auth.invalid')}
                 </Text>
               ) : null}
 
@@ -164,7 +166,7 @@ export function LoginScreen({}: Props) {
                 }}
               >
                 <Text style={{ color: colors.primaryForeground, fontSize: 15, fontWeight: '800' }}>
-                  {loading ? 'Signing in...' : 'Continue'}
+                  {loading ? t('auth.signingIn') : t('common.continue')}
                 </Text>
               </TouchableOpacity>
 
@@ -178,7 +180,7 @@ export function LoginScreen({}: Props) {
                   textAlign: 'center',
                 }}
               >
-                By clicking sign in, you agree to our Terms of Service and Privacy Policy.
+                {t('auth.terms')}
               </Text>
             </View>
           </View>

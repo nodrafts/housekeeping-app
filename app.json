@@ -20,7 +20,8 @@
           "photosPermission": "Allow NoDrafts Housekeeping to attach photos to incident reports.",
           "cameraPermission": "Allow NoDrafts Housekeeping to take incident photos."
         }
-      ]
+      ],
+      "expo-localization"
     ]
   }
 }

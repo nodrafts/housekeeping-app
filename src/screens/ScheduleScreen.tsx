@@ -18,6 +18,7 @@ import { colors, radii } from '../lib/theme';
 import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 import { useAuth } from '../modules/auth/useAuth';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
+import { useTranslation } from 'react-i18next';
 import {
   useAvailableSwapEmployees,
   useCreateScheduleSwap,
@@ -33,12 +34,6 @@ const DEFAULT_VISIBLE_HOURS = 8;
 const HOUR_HEIGHT = 72;
 const WEEK_TIME_GUTTER = 44;
 const WEEK_VISIBLE_DAYS = 6;
-
-const VIEW_LABELS: Record<ScheduleViewMode, string> = {
-  day: 'Day',
-  week: 'Week',
-  month: 'Month',
-};
 
 function dateToInput(value: Date) {
   const year = value.getFullYear();
@@ -208,6 +203,7 @@ function groupByDate(schedules: StaffSchedule[]) {
 }
 
 export function ScheduleScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const { user } = useAuth();
   const { selectedHotel } = useHotelStore();
@@ -445,7 +441,7 @@ export function ScheduleScreen({ navigation }: any) {
       return (
         <View style={{ minHeight: 220, alignItems: 'center', justifyContent: 'center', gap: 10 }}>
           <ActivityIndicator color={colors.primary} />
-          <Text style={{ fontSize: 13, color: colors.mutedForeground }}>Loading shifts...</Text>
+          <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{t('schedule.loading')}</Text>
         </View>
       );
     }
@@ -453,7 +449,7 @@ export function ScheduleScreen({ navigation }: any) {
     if (errorMessage) {
       return (
         <View style={{ minHeight: 220, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <Text style={{ fontSize: 15, fontWeight: '800', color: colors.foreground }}>Unable to load shifts</Text>
+          <Text style={{ fontSize: 15, fontWeight: '800', color: colors.foreground }}>{t('schedule.loadFailed')}</Text>
           <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 13, color: colors.mutedForeground }}>
             {errorMessage}
           </Text>
@@ -468,7 +464,7 @@ export function ScheduleScreen({ navigation }: any) {
             }}
             activeOpacity={0.75}
           >
-            <Text style={{ fontSize: 13, fontWeight: '800', color: colors.primaryForeground }}>Retry</Text>
+            <Text style={{ fontSize: 13, fontWeight: '800', color: colors.primaryForeground }}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -490,7 +486,7 @@ export function ScheduleScreen({ navigation }: any) {
           >
             <Icon name="calendar" size={20} color={colors.primary} />
           </View>
-          <Text style={{ fontSize: 15, fontWeight: '800', color: colors.foreground }}>No shift</Text>
+          <Text style={{ fontSize: 15, fontWeight: '800', color: colors.foreground }}>{t('schedule.noShift')}</Text>
         </View>
       );
     }
@@ -727,7 +723,7 @@ export function ScheduleScreen({ navigation }: any) {
               </Text>
               <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={{ fontSize: 13, fontWeight: '800', letterSpacing: 0, textTransform: 'uppercase', color: colors.primary }}>
-                  {viewMode === 'day' ? weekDay : VIEW_LABELS[viewMode]}
+                  {viewMode === 'day' ? weekDay : t(`schedule.${viewMode}`)}
                 </Text>
                 <Icon name="calendar" size={14} color={colors.primary} />
               </View>
@@ -748,7 +744,7 @@ export function ScheduleScreen({ navigation }: any) {
                 }}
                 activeOpacity={0.75}
               >
-                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.foreground }}>{VIEW_LABELS[viewMode]}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.foreground }}>{t(`schedule.${viewMode}`)}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -789,7 +785,7 @@ export function ScheduleScreen({ navigation }: any) {
                 }}
                 activeOpacity={0.75}
               >
-                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>Swap</Text>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>{t('schedule.swap')}</Text>
               </TouchableOpacity>
             </View>
           ) : null}
@@ -887,7 +883,7 @@ export function ScheduleScreen({ navigation }: any) {
               >
                 <Icon name={mode === 'day' ? 'calendar' : mode === 'week' ? 'check' : 'calendar'} size={16} color={viewMode === mode ? colors.primary : colors.mutedForeground} />
                 <Text style={{ flex: 1, fontSize: 14, fontWeight: viewMode === mode ? '800' : '600', color: colors.foreground }}>
-                  {VIEW_LABELS[mode]}
+                  {t(`schedule.${mode}`)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -962,7 +958,7 @@ export function ScheduleScreen({ navigation }: any) {
         <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(15,23,42,0.42)' }}>
           <View style={{ maxHeight: '86%', borderTopLeftRadius: 22, borderTopRightRadius: 22, backgroundColor: colors.card, padding: 18 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: colors.foreground }}>Swap shift</Text>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: colors.foreground }}>{t('schedule.swapShift')}</Text>
               <TouchableOpacity
                 onPress={() => {
                   setSwapOpen(false);
@@ -976,7 +972,7 @@ export function ScheduleScreen({ navigation }: any) {
 
             {activeSwapSchedule ? (
               <View style={{ borderRadius: radii.lg, backgroundColor: colors.selected, padding: 12, marginBottom: 14 }}>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>Your shift</Text>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>{t('schedule.yourShift')}</Text>
                 <Text style={{ marginTop: 6, fontSize: 15, fontWeight: '800', color: colors.foreground }}>
                   {formatClock(activeSwapSchedule.plannedStartTime)} - {formatClock(activeSwapSchedule.plannedEndTime)}
                 </Text>
@@ -986,24 +982,24 @@ export function ScheduleScreen({ navigation }: any) {
               </View>
             ) : null}
 
-            <Text style={{ marginBottom: 8, fontSize: 13, fontWeight: '800', color: colors.foreground }}>Target date</Text>
+            <Text style={{ marginBottom: 8, fontSize: 13, fontWeight: '800', color: colors.foreground }}>{t('schedule.targetDate')}</Text>
             <View style={{ borderRadius: radii.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, padding: 12, marginBottom: 14 }}>
               <Text style={{ fontSize: 14, fontWeight: '800', color: colors.foreground }}>
                 {formatDayTitle(inputToDate(selectedDate))}
               </Text>
               <Text style={{ marginTop: 2, fontSize: 12, color: colors.mutedForeground }}>
-                Available staff for this shift time
+                {t('schedule.availableStaff')}
               </Text>
             </View>
 
-            <Text style={{ marginBottom: 8, fontSize: 13, fontWeight: '800', color: colors.foreground }}>Swap with</Text>
+            <Text style={{ marginBottom: 8, fontSize: 13, fontWeight: '800', color: colors.foreground }}>{t('schedule.swapWith')}</Text>
             {availableEmployeesQuery.isLoading ? (
               <View style={{ height: 120, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator color={colors.primary} />
               </View>
             ) : (availableEmployeesQuery.data ?? []).length === 0 ? (
               <View style={{ minHeight: 96, alignItems: 'center', justifyContent: 'center', borderRadius: radii.lg, backgroundColor: colors.muted }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.mutedForeground }}>No available staff found</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.mutedForeground }}>{t('schedule.noStaff')}</Text>
               </View>
             ) : (
               <ScrollView style={{ maxHeight: 220 }}>
@@ -1060,7 +1056,7 @@ export function ScheduleScreen({ navigation }: any) {
               activeOpacity={0.75}
             >
               <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}>
-                {createSwap.isPending ? 'Submitting...' : 'Request swap'}
+                {createSwap.isPending ? t('schedule.submitting') : t('schedule.submitSwap')}
               </Text>
             </TouchableOpacity>
           </View>
