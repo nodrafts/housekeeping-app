@@ -151,7 +151,9 @@ export function RoomsListScreen({ navigation }: Props) {
             const openIncidents = getOpenIncidentsForRoom(allIncidents, item.roomNumber);
             const done = item.status === 'READY';
             const inProgress = item.status === 'CLEANING';
-            const elapsed = inProgress ? formatCleaningElapsed(item.cleaningStartTime, now) : null;
+            const elapsed = inProgress
+              ? formatCleaningElapsed(item.cleaningStartTime, now, item.dueDate)
+              : null;
             const isStarting = startingId === item.id;
 
             return (
