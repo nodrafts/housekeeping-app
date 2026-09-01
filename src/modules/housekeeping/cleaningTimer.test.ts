@@ -11,6 +11,11 @@ describe('formatCleaningElapsed', () => {
     expect(formatCleaningElapsed('2026-08-27T10:00:00.000Z', now)).toBe('05:30');
   });
 
+  it('combines a legacy clock value with the housekeeping service date', () => {
+    const now = new Date(2026, 8, 1, 21, 5, 0);
+    expect(formatCleaningElapsed('21:00:00', now, '2026-09-01')).toBe('05:00');
+  });
+
   it('returns null for a missing or invalid start time', () => {
     expect(formatCleaningElapsed(null)).toBeNull();
     expect(formatCleaningElapsed('not-a-time')).toBeNull();
