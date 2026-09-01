@@ -8,10 +8,10 @@ import {
   updateHousekeepingRoom,
 } from './roomAssignmentsApi';
 
-export function useAssignment(id: string, hotelCode?: string) {
+export function useAssignment(id: string, hotelCode?: string, dueDate?: string) {
   return useQuery({
-    queryKey: assignmentKey(hotelCode, id),
-    queryFn: () => fetchAssignment(hotelCode, id),
+    queryKey: assignmentKey(hotelCode, id, dueDate),
+    queryFn: () => fetchAssignment(hotelCode, id, dueDate),
     enabled: !!id && !!hotelCode,
   });
 }

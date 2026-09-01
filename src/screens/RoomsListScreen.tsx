@@ -57,7 +57,7 @@ export function RoomsListScreen({ navigation }: Props) {
 
   const openRoom = (item: (typeof data)[number]) => {
     if (item.status === 'CLEANING' || item.status === 'READY') {
-      navigation.navigate('RoomDetails', { assignmentId: item.id });
+      navigation.navigate('RoomDetails', { assignmentId: item.id, dueDate: item.dueDate ?? selectedDate });
       return;
     }
 
@@ -67,7 +67,7 @@ export function RoomsListScreen({ navigation }: Props) {
       {
         onSuccess: () => {
           setStartingId(null);
-          navigation.navigate('RoomDetails', { assignmentId: item.id });
+          navigation.navigate('RoomDetails', { assignmentId: item.id, dueDate: item.dueDate ?? selectedDate });
         },
         onError: () => {
           setStartingId(null);
@@ -178,19 +178,24 @@ export function RoomsListScreen({ navigation }: Props) {
                       {item.type ? ` - ${item.type}` : ''}
                     </Text>
                   </View>
-                  <View
-                    style={{
-                      paddingHorizontal: 9,
-                      paddingVertical: 5,
-                      borderRadius: radii.pill,
-                      backgroundColor: done ? colors.muted : inProgress ? '#fef3c7' : colors.muted,
-                    }}
-                  >
-                    <Text style={{ fontSize: 11, fontWeight: '800', color: done ? colors.foreground : inProgress ? '#92400e' : colors.foreground }}>
-                      {isStarting
-                        ? t('rooms.starting')
-                        : t(item.status === 'READY' ? 'status.ready' : item.status === 'CLEANING' ? 'status.cleaning' : item.status === 'STAY_OVER' ? 'status.stayOver' : 'status.checkout')}
-                    </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View
+                      style={{
+                        paddingHorizontal: 9,
+                        paddingVertical: 5,
+                        borderRadius: radii.pill,
+                        backgroundColor: done ? colors.muted : inProgress ? '#fef3c7' : colors.muted,
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: done ? colors.foreground : inProgress ? '#92400e' : colors.foreground }}>
+                        {isStarting
+                          ? t('rooms.starting')
+                          : t(item.status === 'READY' ? 'status.ready' : item.status === 'CLEANING' ? 'status.cleaning' : item.status === 'STAY_OVER' ? 'status.stayOver' : 'status.checkout')}
+                      </Text>
+                    </View>
+                    {elapsed ? (
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: '#92400e' }}>{elapsed}</Text>
+                    ) : null}
                   </View>
                 </View>
 
@@ -199,7 +204,7 @@ export function RoomsListScreen({ navigation }: Props) {
                 </View>
                 <View style={{ marginTop: 8, flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 12, color: colors.mutedForeground }}>
-                    {elapsed ? t('rooms.elapsed', { time: elapsed }) : t('rooms.completePercent', { percent: progress })}
+                    {t('rooms.completePercent', { percent: progress })}
                   </Text>
                   {openIncidents.length > 0 ? (
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#f97316' }}>
