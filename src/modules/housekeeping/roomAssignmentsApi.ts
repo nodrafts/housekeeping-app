@@ -11,7 +11,7 @@ type HousekeepingRoomResponse = {
   roomType?: string | null;
   cleaningStartTime?: string | null;
   cleaningEndTime?: string | null;
-  dueDate?: string | null;
+  dueDate?: string | number[] | null;
   checklist?: HousekeepingChecklistItemResponse[] | null;
 };
 
@@ -49,6 +49,15 @@ function normalizeChecklistStatus(status?: string | null): ChecklistItem['status
   return 'WAITING';
 }
 
+export function normalizeServiceDate(value?: string | number[] | null): string | null {
+  if (typeof value === 'string') return value;
+  if (!Array.isArray(value) || value.length < 3) return null;
+
+  const [year, month, day] = value;
+  if (![year, month, day].every(Number.isInteger)) return null;
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
 function mapChecklistItem(item: HousekeepingChecklistItemResponse): ChecklistItem {
   const status = normalizeChecklistStatus(item.status);
   return {
@@ -74,7 +83,7 @@ export function mapRoomToAssignment(room: HousekeepingRoomResponse): RoomAssignm
     } : null,
     cleaningStartTime: room.cleaningStartTime ?? null,
     cleaningEndTime: room.cleaningEndTime ?? null,
-    dueDate: room.dueDate ?? null,
+    dueDate: normalizeServiceDate(room.dueDate),
     checklist: (room.checklist ?? []).map(mapChecklistItem),
   };
 }
