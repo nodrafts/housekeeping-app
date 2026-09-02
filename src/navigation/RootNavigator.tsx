@@ -17,6 +17,7 @@ import { colors } from '../lib/theme';
 import { Icon, IconName } from '../components/ui/Icon';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { useTranslation } from 'react-i18next';
+import { OrganizationSelectScreen } from '../screens/OrganizationSelectScreen';
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
@@ -198,9 +199,20 @@ function AppNavigator() {
 }
 
 export function RootNavigator() {
-  const { user, loading } = useAuth();
+  const { user, loading, requiresOrganizationSelection } = useAuth();
 
   if (loading) return null;
+
+  if (requiresOrganizationSelection) {
+    return (
+      <AuthStack.Navigator
+        id="OrganizationAuthStack"
+        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
+      >
+        <AuthStack.Screen name="OrganizationSelect" component={OrganizationSelectScreen} />
+      </AuthStack.Navigator>
+    );
+  }
 
   if (!user) {
     return (

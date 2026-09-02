@@ -21,6 +21,9 @@ const en = {
     password: 'Password', signIn: 'Sign in', signingIn: 'Signing in...', invalid: 'Invalid email or password',
     selectHotel: 'Select a property', selectHotelSubtitle: 'Choose where you are working today',
     loadHotelsFailed: 'Could not load properties.', tapRetry: 'Tap to retry',
+    selectOrganization: 'Select an organization', selectOrganizationSubtitle: 'Choose the organization you want to manage.',
+    selectingOrganization: 'Opening organization...', loadOrganizationsFailed: 'Could not load organizations.',
+    noOrganizations: 'No organizations are available.', selectOrganizationFailed: 'Could not open this organization. Please try again.',
     terms: 'By signing in, you agree to our Terms of Service and Privacy Policy.',
   },
   rooms: {
@@ -87,6 +90,9 @@ const es: typeof en = {
     password: 'Contraseña', signIn: 'Iniciar sesión', signingIn: 'Iniciando sesión...', invalid: 'Correo o contraseña incorrectos',
     selectHotel: 'Seleccionar una propiedad', selectHotelSubtitle: 'Elige dónde trabajarás hoy',
     loadHotelsFailed: 'No se pudieron cargar las propiedades.', tapRetry: 'Toca para reintentar',
+    selectOrganization: 'Seleccionar una organización', selectOrganizationSubtitle: 'Elige la organización que deseas administrar.',
+    selectingOrganization: 'Abriendo organización...', loadOrganizationsFailed: 'No se pudieron cargar las organizaciones.',
+    noOrganizations: 'No hay organizaciones disponibles.', selectOrganizationFailed: 'No se pudo abrir esta organización. Inténtalo de nuevo.',
     terms: 'Al iniciar sesión, aceptas nuestros Términos de servicio y Política de privacidad.',
   },
   rooms: {
