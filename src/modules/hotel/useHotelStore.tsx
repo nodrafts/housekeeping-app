@@ -7,7 +7,7 @@ export type Hotel = {
 
 type HotelContextType = {
   selectedHotel: Hotel | null;
-  setSelectedHotel: (hotel: Hotel) => void;
+  setSelectedHotel: (hotel: Hotel | null) => void;
 };
 
 const HotelContext = createContext<HotelContextType>({
