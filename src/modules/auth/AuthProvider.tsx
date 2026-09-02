@@ -2,13 +2,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api, setAuthToken } from '../../lib/api';
 import type { User, LoginRequest, UserRole } from './types';
 import { setChatToken } from '../../lib/chatApi';
+import { queryClient } from '../../lib/queryClient';
+import { setActiveOrgId } from '../../lib/propertyConfig';
 
 interface AuthContextValue {
   user: User | null;
   accessToken: string | null;
   loading: boolean;
   error: string | null;
+  requiresOrganizationSelection: boolean;
   login: (payload: LoginRequest) => Promise<void>;
+  selectOrganization: (orgId: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -20,6 +24,19 @@ type CurrentUserResponse = {
   orgPermissions?: string[];
   hotelPermissions?: Record<string, string[]>;
   assignedHotels?: string[];
+  orgId?: string | null;
+};
+
+type AuthResponse = {
+  token: string;
+  userId: string;
+  email: string;
+  firstName: string;
+  middleName: string | null;
+  lastName: string | null;
+  mustChangePassword: boolean;
+  orgId?: string | null;
+  platformAdmin?: boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -51,66 +68,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [requiresOrganizationSelection, setRequiresOrganizationSelection] = useState(false);
+
+  const establishSession = async (data: AuthResponse) => {
+    setAuthToken(data.token);
+    setChatToken(data.token);
+    setActiveOrgId(data.orgId);
+
+    const meResponse = await api.get<{ data: CurrentUserResponse }>('/api/v1/auth/me');
+    const currentUser = meResponse.data.data;
+    const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ');
+    const assignedHotels = Array.from(new Set([
+      ...(currentUser.assignedHotels ?? []),
+      ...Object.keys(currentUser.hotelPermissions ?? {}),
+    ]));
+
+    setUser({
+      id: data.userId,
+      name: currentUser.name || fullName || data.email,
+      email: data.email,
+      role: buildRole(currentUser),
+      hotelCode: assignedHotels[0],
+      platformAdmin: currentUser.platformAdmin,
+      canAccessAllHotels: hasOrgWideAccess(currentUser),
+      assignedHotels,
+      orgId: data.orgId ?? currentUser.orgId ?? undefined,
+    });
+    setAccessToken(data.token);
+  };
 
   const login = async (payload: LoginRequest) => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await api.post<{
-        data: {
-          token: string;
-          userId: string;
-          email: string;
-          firstName: string;
-          middleName: string | null;
-          lastName: string | null;
-          mustChangePassword: boolean;
-        };
-      }>('/api/v1/auth/login', {
+      const response = await api.post<{ data: AuthResponse }>('/api/v1/auth/login', {
         email: payload.email,
         password: payload.password,
       });
 
       const { data } = response.data;
-      setAuthToken(data.token);
-      setChatToken(data.token);
-
-      let currentUser: CurrentUserResponse | null = null;
-      try {
-        const meResponse = await api.get<{ data: CurrentUserResponse }>('/api/v1/auth/me');
-        currentUser = meResponse.data.data;
-      } catch {
-        currentUser = null;
+      if (data.platformAdmin && !data.orgId) {
+        setAuthToken(data.token);
+        setChatToken(data.token);
+        setAccessToken(data.token);
+        setRequiresOrganizationSelection(true);
+        return;
       }
 
-      const fullName = [data.firstName, data.lastName]
-        .filter(Boolean)
-        .join(' ');
-      const raw = data as any;
-      const assignedHotels = Array.from(new Set([
-        ...(currentUser?.assignedHotels ?? []),
-        ...Object.keys(currentUser?.hotelPermissions ?? {}),
-      ]));
-      const firstHotelCode = raw.hotelCode ?? assignedHotels[0];
-
-      const nextUser: User = {
-        id: data.userId,
-        name: currentUser?.name || fullName || data.email,
-        email: data.email,
-        role: buildRole(currentUser, raw.role),
-        designation: raw.designation ?? undefined,
-        hotelCode: firstHotelCode ?? undefined,
-        hotelName: raw.hotelName ?? undefined,
-        platformAdmin: currentUser?.platformAdmin ?? false,
-        canAccessAllHotels: hasOrgWideAccess(currentUser),
-        assignedHotels,
-      };
-
-      setUser(nextUser);
-      setAccessToken(data.token);
+      await establishSession(data);
     } catch {
       setError('Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectOrganization = async (orgId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.post<{ data: AuthResponse }>('/api/v1/auth/select-org', { orgId });
+      queryClient.clear();
+      await establishSession(response.data.data);
+      setRequiresOrganizationSelection(false);
+    } catch {
+      setError('Could not select organization');
+      throw new Error('Could not select organization');
     } finally {
       setLoading(false);
     }
@@ -121,6 +145,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAccessToken(null);
     setAuthToken(null);
     setChatToken(null);
+    setActiveOrgId(null);
+    setRequiresOrganizationSelection(false);
+    queryClient.clear();
   };
 
   // TODO: load persisted user/token here
@@ -128,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, accessToken, loading, error, login, logout }}
+      value={{ user, accessToken, loading, error, requiresOrganizationSelection, login, selectOrganization, logout }}
     >
       {children}
     </AuthContext.Provider>

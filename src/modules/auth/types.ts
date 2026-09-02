@@ -11,6 +11,7 @@ export interface User {
   platformAdmin?: boolean;
   canAccessAllHotels?: boolean;
   assignedHotels?: string[];
+  orgId?: string;
 }
 
 export interface AuthSession {
