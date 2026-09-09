@@ -13,6 +13,15 @@
     "android": {
       "package": "com.nodrafts.housekeeping"
     },
+    "web": {
+      "name": "NoDrafts Housekeeping",
+      "shortName": "Housekeeping",
+      "description": "Housekeeping operations and staff workflow management.",
+      "themeColor": "#0f766e",
+      "backgroundColor": "#f8fafc",
+      "display": "standalone",
+      "orientation": "portrait"
+    },
     "plugins": [
       [
         "expo-image-picker",

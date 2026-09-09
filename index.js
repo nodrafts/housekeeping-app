@@ -17,3 +17,10 @@ if (!globalThis.TextDecoder) globalThis.TextDecoder = TextDecoder;
 if (!globalThis.TextEncoder) globalThis.TextEncoder = TextEncoder;
 
 registerRootComponent(App);
+
+// Register the PWA service worker only in browser builds.
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+  });
+}
