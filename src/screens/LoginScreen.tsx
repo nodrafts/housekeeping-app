@@ -20,11 +20,11 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 function LogoMark() {
   return (
     <View style={{ width: 38, height: 28, flexDirection: 'row', alignItems: 'center' }}>
-      <View style={{ width: 7, height: 22, borderRadius: 2, backgroundColor: colors.primary }} />
+      <View style={{ width: 7, height: 22, borderRadius: 2, backgroundColor: colors.primaryForeground }} />
       <View style={{ marginLeft: 3, gap: 4 }}>
-        <View style={{ width: 7, height: 5, borderRadius: 1.5, backgroundColor: colors.primary }} />
-        <View style={{ width: 7, height: 5, borderRadius: 1.5, backgroundColor: colors.primary }} />
-        <View style={{ width: 7, height: 5, borderRadius: 1.5, backgroundColor: colors.primary }} />
+        <View style={{ width: 7, height: 5, borderRadius: 1.5, backgroundColor: colors.primaryForeground }} />
+        <View style={{ width: 7, height: 5, borderRadius: 1.5, backgroundColor: colors.primaryForeground }} />
+        <View style={{ width: 7, height: 5, borderRadius: 1.5, backgroundColor: colors.primaryForeground }} />
       </View>
       <View
         style={{
@@ -35,7 +35,7 @@ function LogoMark() {
           borderBottomRightRadius: 11,
           borderWidth: 5,
           borderLeftWidth: 0,
-          borderColor: colors.primary,
+          borderColor: colors.primaryForeground,
         }}
       />
     </View>
@@ -53,7 +53,7 @@ export function LoginScreen({}: Props) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.card }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -62,20 +62,21 @@ export function LoginScreen({}: Props) {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,
-            justifyContent: 'center',
+            justifyContent: 'flex-end',
             paddingHorizontal: 24,
-            paddingVertical: 40,
+            paddingTop: 56,
+            paddingBottom: 24,
           }}
         >
           <View style={{ width: '100%', maxWidth: 520, alignSelf: 'center' }}>
-            <View style={{ alignItems: 'center', marginBottom: 30 }}>
+            <View style={{ alignItems: 'flex-start', marginBottom: 38 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <LogoMark />
-                <Text style={{ marginLeft: 10, fontSize: 23, fontWeight: '800', color: colors.foreground }}>
-                  No Drafts
+                <Text style={{ marginLeft: 10, fontSize: 28, fontWeight: '800', color: colors.primaryForeground }}>
+                  noDrafts
                 </Text>
               </View>
-              <Text style={{ marginTop: 8, fontSize: 18, fontWeight: '700', color: colors.foreground }}>
+              <Text style={{ marginTop: 10, fontSize: 17, fontWeight: '600', color: '#eadfea' }}>
                 {t('navigation.housekeeping')}
               </Text>
             </View>
@@ -85,15 +86,13 @@ export function LoginScreen({}: Props) {
                 width: '100%',
                 paddingHorizontal: 24,
                 paddingVertical: 30,
-                borderRadius: radii.md,
-                borderWidth: 1,
-                borderColor: colors.border,
+                borderRadius: radii.xl,
                 backgroundColor: colors.card,
-                elevation: 2,
+                elevation: 6,
                 shadowColor: '#000000',
-                shadowOpacity: 0.06,
-                shadowRadius: 10,
-                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.18,
+                shadowRadius: 18,
+                shadowOffset: { width: 0, height: 8 },
               }}
             >
               <Text style={{ fontSize: 26, fontWeight: '800', color: colors.foreground, marginBottom: 8 }}>
@@ -116,7 +115,7 @@ export function LoginScreen({}: Props) {
                 style={{
                   height: 48,
                   paddingHorizontal: 14,
-                  borderRadius: radii.md,
+                  borderRadius: radii.sm,
                   borderWidth: 1,
                   borderColor: colors.input,
                   backgroundColor: colors.card,
@@ -137,7 +136,7 @@ export function LoginScreen({}: Props) {
                 style={{
                   height: 48,
                   paddingHorizontal: 14,
-                  borderRadius: radii.md,
+                  borderRadius: radii.sm,
                   borderWidth: 1,
                   borderColor: colors.input,
                   backgroundColor: colors.card,
@@ -158,7 +157,7 @@ export function LoginScreen({}: Props) {
                 style={{
                   marginTop: 24,
                   height: 48,
-                  borderRadius: radii.md,
+                  borderRadius: radii.sm,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: colors.primary,

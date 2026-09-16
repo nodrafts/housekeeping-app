@@ -15,7 +15,7 @@ import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 import { colors } from '../lib/theme';
 import { Icon, IconName } from '../components/ui/Icon';
-import { SettingsScreen } from '../screens/SettingsScreen';
+import { MessagingScreen } from '../screens/MessagingScreen';
 import { useTranslation } from 'react-i18next';
 import { OrganizationSelectScreen } from '../screens/OrganizationSelectScreen';
 
@@ -75,9 +75,9 @@ function StaffTabNavigator() {
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: t('navigation.schedule') }}
       />
       <StaffTab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} />, tabBarLabel: t('navigation.settings') }}
+        name="Chat"
+        component={MessagingScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />, tabBarLabel: t('navigation.chat') }}
       />
       <StaffTab.Screen
         name="Profile"
@@ -119,9 +119,9 @@ function AdminTabNavigator() {
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: t('navigation.schedule') }}
       />
       <AdminTab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} />, tabBarLabel: t('navigation.settings') }}
+        name="Chat"
+        component={MessagingScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />, tabBarLabel: t('navigation.chat') }}
       />
       <AdminTab.Screen
         name="Profile"
@@ -177,7 +177,7 @@ function AppNavigator() {
       <AppStack.Screen
         name="RoomDetails"
         component={RoomDetailsScreen}
-        options={{ title: t('navigation.roomDetails') }}
+        options={{ headerShown: false }}
       />
       <AppStack.Screen
         name="RoomsList"

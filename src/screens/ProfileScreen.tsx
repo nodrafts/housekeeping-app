@@ -1,11 +1,12 @@
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '../components/layout/Screen';
 import { useAuth } from '../modules/auth/useAuth';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { useRole } from '../modules/auth/useRole';
 import { colors, radii } from '../lib/theme';
+import { appLanguage, changeAppLanguage, type AppLanguage } from '../i18n';
 
 function initials(name?: string | null) {
   const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
@@ -15,8 +16,8 @@ function initials(name?: string | null) {
 
 export function ProfileScreen() {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const { selectedHotel } = useHotelStore();
+  const { user, logout } = useAuth();
+  const { selectedHotel, setSelectedHotel } = useHotelStore();
   const { isAdmin } = useRole();
 
   const hotelName = selectedHotel?.name ?? user?.hotelName ?? user?.hotelCode ?? '-';
@@ -26,6 +27,10 @@ export function ProfileScreen() {
     { label: t('settings.role'), value: t(isAdmin ? 'settings.admin' : 'settings.staff') },
     { label: t('settings.hotel'), value: hotelName },
   ];
+  const handleLogout = () => {
+    setSelectedHotel(null);
+    logout();
+  };
 
   return (
     <Screen>
@@ -33,24 +38,24 @@ export function ProfileScreen() {
         style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={{ padding: 20, paddingBottom: 96 }}
       >
-        <Text style={{ fontSize: 22, fontWeight: '700', color: colors.foreground, marginBottom: 20 }}>
+        <Text style={{ fontSize: 28, fontWeight: '800', color: colors.foreground, marginBottom: 20 }}>
           {t('profile.title')}
         </Text>
 
-        <View style={{ backgroundColor: colors.card, borderRadius: radii.md, padding: 18, borderWidth: 1, borderColor: colors.border }}>
+        <View style={{ backgroundColor: colors.card, borderRadius: radii.lg, padding: 18, borderWidth: 1, borderColor: colors.border }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 18 }}>
             <View
               style={{
                 width: 58,
                 height: 58,
                 borderRadius: 29,
-                backgroundColor: colors.selected,
+                backgroundColor: colors.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 14,
               }}
             >
-              <Text style={{ color: colors.primary, fontSize: 18, fontWeight: '800' }}>
+              <Text style={{ color: colors.primaryForeground, fontSize: 18, fontWeight: '800' }}>
                 {initials(user?.name)}
               </Text>
             </View>
@@ -89,6 +94,39 @@ export function ProfileScreen() {
             </View>
           ))}
         </View>
+
+        <View style={{ marginTop: 16, backgroundColor: colors.card, borderRadius: radii.lg, padding: 18, borderWidth: 1, borderColor: colors.border }}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: colors.mutedForeground, textTransform: 'uppercase' }}>
+            {t('settings.language')}
+          </Text>
+          <Text style={{ marginTop: 5, fontSize: 13, color: colors.mutedForeground }}>{t('settings.languageDescription')}</Text>
+          <View style={{ marginTop: 14, flexDirection: 'row', borderRadius: radii.md, padding: 3, backgroundColor: colors.muted }}>
+            {(['en', 'es'] as AppLanguage[]).map((language) => {
+              const selected = appLanguage() === language;
+              return (
+                <TouchableOpacity
+                  key={language}
+                  onPress={() => changeAppLanguage(language)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  style={{ flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radii.sm, backgroundColor: selected ? colors.card : 'transparent' }}
+                >
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: selected ? colors.primary : colors.mutedForeground }}>
+                    {t(language === 'en' ? 'settings.english' : 'settings.spanish')}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleLogout}
+          accessibilityRole="button"
+          style={{ marginTop: 16, minHeight: 50, borderRadius: radii.md, borderWidth: 1, borderColor: colors.destructive, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card }}
+        >
+          <Text style={{ fontSize: 15, fontWeight: '800', color: colors.destructive }}>{t('common.logout')}</Text>
+        </TouchableOpacity>
       </ScrollView>
     </Screen>
   );

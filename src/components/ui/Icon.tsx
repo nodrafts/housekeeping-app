@@ -12,6 +12,7 @@ export type IconName =
   | 'alert-circle'
   | 'bed'
   | 'calendar'
+  | 'chat'
   | 'check'
   | 'home'
   | 'settings'
@@ -59,6 +60,15 @@ export function Icon({
           <Line x1="8" y1="2.5" x2="8" y2="6.5" />
           <Line x1="16" y1="2.5" x2="16" y2="6.5" />
           <Line x1="3" y1="10" x2="21" y2="10" />
+        </>
+      ) : null}
+
+      {name === 'chat' ? (
+        <>
+          <Path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+          <Line x1="8" y1="10" x2="8.01" y2="10" />
+          <Line x1="12" y1="10" x2="12.01" y2="10" />
+          <Line x1="16" y1="10" x2="16.01" y2="10" />
         </>
       ) : null}
 

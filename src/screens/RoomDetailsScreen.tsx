@@ -111,16 +111,22 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
 
   return (
     <Screen>
+      <View style={{ minHeight: 58, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" style={{ width: 42, height: 42, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: colors.primaryForeground, fontSize: 32, lineHeight: 34 }}>‹</Text>
+        </TouchableOpacity>
+        <Text style={{ marginLeft: 4, color: colors.primaryForeground, fontSize: 18, fontWeight: '800' }}>{t('navigation.roomDetails')}</Text>
+      </View>
       <View
         style={{
           paddingHorizontal: 16,
-          paddingVertical: 12,
+          paddingVertical: 18,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
           backgroundColor: colors.card,
         }}
       >
-        <Text style={{ fontSize: 22, fontWeight: '800', color: colors.foreground }}>
+        <Text style={{ fontSize: 28, fontWeight: '800', color: colors.foreground }}>
           {t('rooms.room', { number: data.roomNumber })}
         </Text>
         <Text style={{ marginTop: 4, fontSize: 13, color: colors.mutedForeground }}>
@@ -156,7 +162,7 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
         </View>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 96 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 112 }}>
         <Text style={{ marginBottom: 8, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', color: colors.mutedForeground }}>
           {t('checklist.title')}
         </Text>
@@ -166,53 +172,37 @@ export function RoomDetailsScreen({ route, navigation }: Props) {
           const skipped = item.status === 'SKIPPED';
 
           return (
-            <View
+            <TouchableOpacity
               key={`${item.id}-${index}`}
+              onPress={() => toggleItem(item)}
+              disabled={updateChecklist.isPending || updateStatus.isPending || isReady}
               style={{
-                marginBottom: 14,
-                borderRadius: radii.md,
-                borderWidth: 1.5,
+                marginBottom: 10,
+                borderRadius: radii.lg,
+                borderWidth: 1,
                 borderColor: colors.border,
                 backgroundColor: colors.card,
-                padding: 14,
+                padding: 16,
+                minHeight: 68,
+                flexDirection: 'row',
+                alignItems: 'center',
               }}
             >
+              <View style={{ width: 26, height: 26, marginRight: 13, borderRadius: 7, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: done ? colors.primary : colors.input, backgroundColor: done ? colors.primary : colors.card }}>
+                {done ? <Icon name="check" size={17} color={colors.primaryForeground} strokeWidth={3} /> : null}
+              </View>
               <Text
                 style={{
-                  marginBottom: 12,
+                  flex: 1,
                   fontSize: 15,
                   lineHeight: 21,
-                  fontWeight: '800',
-                  color: colors.foreground,
+                  fontWeight: '700',
+                  color: skipped ? colors.mutedForeground : colors.foreground,
                 }}
               >
                 {t(`checklistItems.${item.id}`, { defaultValue: item.label })}
               </Text>
-
-              <TouchableOpacity
-                onPress={() => toggleItem(item)}
-                disabled={updateChecklist.isPending || updateStatus.isPending || isReady}
-                style={{
-                  minHeight: 42,
-                  borderRadius: radii.lg,
-                  borderWidth: 1.5,
-                  borderColor: done ? colors.primary : colors.input,
-                  backgroundColor: done ? colors.selected : colors.card,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: updateChecklist.isPending || updateStatus.isPending || isReady ? 0.72 : 1,
-                  paddingHorizontal: 12,
-                }}
-              >
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={{ fontSize: 13, fontWeight: '800', color: done ? colors.primary : colors.foreground }}
-                >
-                  {done ? t('checklist.completed') : skipped ? t('checklist.skipped') : t('checklist.markCompleted')}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           );
         })}
 

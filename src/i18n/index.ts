@@ -13,7 +13,7 @@ const en = {
     logout: 'Logout', signOut: 'Sign out', yes: 'Yes', no: 'No', unknown: 'Unknown',
   },
   navigation: {
-    housekeeping: 'Housekeeping', schedule: 'Schedule', settings: 'Settings', profile: 'Profile',
+    housekeeping: 'My rooms', schedule: 'Schedule', chat: 'Chat', settings: 'Settings', profile: 'Profile',
     roomDetails: 'Room details', reportIssue: 'Report an issue',
   },
   auth: {
@@ -82,7 +82,7 @@ const es: typeof en = {
     logout: 'Cerrar sesión', signOut: 'Cerrar sesión', yes: 'Sí', no: 'No', unknown: 'Desconocido',
   },
   navigation: {
-    housekeeping: 'Limpieza', schedule: 'Horario', settings: 'Configuración', profile: 'Perfil',
+    housekeeping: 'Mis habitaciones', schedule: 'Horario', chat: 'Chat', settings: 'Configuración', profile: 'Perfil',
     roomDetails: 'Detalles de la habitación', reportIssue: 'Reportar un problema',
   },
   auth: {

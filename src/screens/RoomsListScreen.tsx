@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -49,6 +49,13 @@ export function RoomsListScreen({ navigation }: Props) {
   const updateStatus = useUpdateStatus();
   const [startingId, setStartingId] = useState<string | null>(null);
   const [now, setNow] = useState(() => new Date());
+  const [filter, setFilter] = useState<'TODO' | 'READY' | 'ALL'>('TODO');
+
+  const filteredData = useMemo(() => data.filter((item) => (
+    filter === 'ALL' ? true : filter === 'READY' ? item.status === 'READY' : item.status !== 'READY'
+  )), [data, filter]);
+  const readyCount = data.filter((item) => item.status === 'READY').length;
+  const firstName = user?.name?.trim().split(/\s+/)[0] ?? t('profile.employee');
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
@@ -85,16 +92,17 @@ export function RoomsListScreen({ navigation }: Props) {
           paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 10 : 12,
           paddingBottom: 14,
           borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-          backgroundColor: colors.card,
+          borderBottomColor: colors.accent,
+          backgroundColor: colors.primary,
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: colors.foreground }}>{t('rooms.title')}</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#e9dce9' }}>{selectedHotel?.name ?? hotelCode}</Text>
+            <Text style={{ marginTop: 2, fontSize: 22, fontWeight: '800', color: colors.primaryForeground }}>noDrafts</Text>
             <View style={{ marginTop: 6, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Icon name="sparkles" size={15} color={colors.primary} />
-              <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>
+              <Icon name="sparkles" size={15} color={colors.primaryForeground} />
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primaryForeground }}>
                 {t('rooms.today', { date: selectedDate })}
               </Text>
             </View>
@@ -108,14 +116,26 @@ export function RoomsListScreen({ navigation }: Props) {
               paddingVertical: 8,
               borderRadius: radii.pill,
               borderWidth: 1,
-              borderColor: colors.input,
-              backgroundColor: colors.secondary,
+              borderColor: '#8a5b8b',
+              backgroundColor: colors.accent,
             }}
           >
-            <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: '700', color: colors.foreground }}>
-              {selectedHotel?.name ?? hotelCode}
+            <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: '800', color: colors.primaryForeground }}>
+              {hotelCode}
             </Text>
           </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: 12, backgroundColor: colors.background }}>
+        <Text style={{ fontSize: 13, color: colors.mutedForeground }}>Good morning, {firstName}</Text>
+        <Text style={{ marginTop: 2, fontSize: 28, fontWeight: '800', color: colors.foreground }}>{t('rooms.title')}</Text>
+        <View style={{ marginTop: 14, flexDirection: 'row', gap: 8 }}>
+          {([['TODO', `${Math.max(0, data.length - readyCount)} to do`], ['READY', `${readyCount} ready`], ['ALL', `All ${data.length}`]] as const).map(([value, label]) => (
+            <TouchableOpacity key={value} onPress={() => setFilter(value)} style={{ flex: 1, minHeight: 40, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center', backgroundColor: filter === value ? colors.primary : colors.card, borderWidth: 1, borderColor: filter === value ? colors.primary : colors.border }}>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: filter === value ? colors.primaryForeground : colors.foreground }}>{label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
@@ -125,11 +145,11 @@ export function RoomsListScreen({ navigation }: Props) {
         </View>
       ) : (
         <FlatList
-          data={data}
+          data={filteredData}
           keyExtractor={(item) => item.id}
           refreshing={isFetching}
           onRefresh={refetch}
-          contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 96 }}
           ListEmptyComponent={
             <View
               style={{
@@ -163,11 +183,11 @@ export function RoomsListScreen({ navigation }: Props) {
                 activeOpacity={0.78}
                 style={{
                   marginBottom: 12,
-                  borderRadius: radii.md,
-                  borderWidth: 1.5,
+                  borderRadius: radii.lg,
+                  borderWidth: 1,
                   borderColor: done ? colors.success : colors.input,
                   backgroundColor: colors.card,
-                  padding: 14,
+                  padding: 16,
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -7,14 +7,14 @@ export type AuthStackParamList = {
 export type StaffTabParamList = {
   Housekeeping: undefined;
   Schedule: undefined;
-  Settings: undefined;
+  Chat: undefined;
   Profile: undefined;
 };
 
 export type AdminTabParamList = {
   Housekeeping: undefined;
   Schedule: undefined;
-  Settings: undefined;
+  Chat: undefined;
   Profile: undefined;
 };
 
