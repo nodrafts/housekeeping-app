@@ -19,6 +19,9 @@ const en = {
   auth: {
     welcome: 'Welcome back', subtitle: 'Sign in to continue to housekeeping', email: 'Email',
     password: 'Password', signIn: 'Sign in', signingIn: 'Signing in...', invalid: 'Invalid email or password',
+    brandTagline: 'YOUR HOTEL. YOUR TEAM.', startShift: 'Log in to start your shift.', workEmail: 'Work email',
+    emailPlaceholder: 'you@hotel.com', passwordPlaceholder: 'Enter your password', show: 'Show', hide: 'Hide',
+    needHelp: 'Need help logging in?', helpMessage: 'Please contact your hotel manager to reset your access.', login: 'Log in', loginFooter: 'Your tools and rooms appear after login.',
     selectHotel: 'Select a property', selectHotelSubtitle: 'Choose where you are working today',
     loadHotelsFailed: 'Could not load properties.', tapRetry: 'Tap to retry',
     selectOrganization: 'Select an organization', selectOrganizationSubtitle: 'Choose the organization you want to manage.',
@@ -88,6 +91,9 @@ const es: typeof en = {
   auth: {
     welcome: 'Bienvenido de nuevo', subtitle: 'Inicia sesión para continuar con la limpieza', email: 'Correo electrónico',
     password: 'Contraseña', signIn: 'Iniciar sesión', signingIn: 'Iniciando sesión...', invalid: 'Correo o contraseña incorrectos',
+    brandTagline: 'TU HOTEL. TU EQUIPO.', startShift: 'Inicia sesión para comenzar tu turno.', workEmail: 'Correo de trabajo',
+    emailPlaceholder: 'tu@hotel.com', passwordPlaceholder: 'Ingresa tu contraseña', show: 'Mostrar', hide: 'Ocultar',
+    needHelp: '¿Necesitas ayuda para iniciar sesión?', helpMessage: 'Comunícate con el gerente de tu hotel para restablecer tu acceso.', login: 'Iniciar sesión', loginFooter: 'Tus herramientas y habitaciones aparecen después de iniciar sesión.',
     selectHotel: 'Seleccionar una propiedad', selectHotelSubtitle: 'Elige dónde trabajarás hoy',
     loadHotelsFailed: 'No se pudieron cargar las propiedades.', tapRetry: 'Toca para reintentar',
     selectOrganization: 'Seleccionar una organización', selectOrganizationSubtitle: 'Elige la organización que deseas administrar.',
