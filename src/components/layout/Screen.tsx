@@ -1,6 +1,6 @@
 import React from 'react';
-import { View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../lib/theme';
 
 interface Props {
@@ -9,9 +9,14 @@ interface Props {
 }
 
 export function Screen({ children }: Props) {
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const webMobileFallback = Platform.OS === 'web' && width <= 768 ? 48 : 0;
+  const topInset = Math.max(insets.top, webMobileFallback);
+
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={{ flex: 1, paddingTop: topInset, backgroundColor: colors.background }}>
       <View style={{ flex: 1 }}>{children}</View>
-    </SafeAreaView>
+    </View>
   );
 }

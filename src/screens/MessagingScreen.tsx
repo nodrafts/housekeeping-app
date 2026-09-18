@@ -92,12 +92,16 @@ export function MessagingScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
           renderItem={({ item }) => {
             if (item.type === 'heading') return <Text style={{ marginTop: item.id === 'people' ? 22 : 4, marginBottom: 8, fontSize: 12, fontWeight: '800', color: colors.mutedForeground, textTransform: 'uppercase' }}>{t(item.id === 'people' ? 'chat.directMessages' : 'chat.channels')}</Text>;
-            if (item.type === 'empty') return <Text style={{ paddingVertical: 12, color: colors.mutedForeground, fontSize: 13 }}>{t(item.id === 'people-empty' ? 'chat.noPeople' : 'chat.noChannels')}</Text>;
+            if (item.type === 'empty') {
+              const query = item.id === 'people-empty' ? peopleQuery : channelsQuery;
+              if (query.isLoading) return <View style={{ minHeight: 52, alignItems: 'flex-start', justifyContent: 'center' }}><ActivityIndicator color={colors.primary} /></View>;
+              if (query.isError) return <View style={{ paddingVertical: 10 }}><Text style={{ color: colors.destructive, fontSize: 13 }}>{t(item.id === 'people-empty' ? 'chat.peopleLoadFailed' : 'chat.channelsLoadFailed')}</Text><TouchableOpacity onPress={() => query.refetch()} style={{ alignSelf: 'flex-start', minHeight: 40, marginTop: 8, justifyContent: 'center' }}><Text style={{ color: colors.primary, fontWeight: '800' }}>{t('common.retry')}</Text></TouchableOpacity></View>;
+              return <Text style={{ paddingVertical: 12, color: colors.mutedForeground, fontSize: 13 }}>{t(item.id === 'people-empty' ? 'chat.noPeople' : 'chat.noChannels')}</Text>;
+            }
             const title = item.type === 'person' ? item.value.name : item.value.displayName ?? item.value.channelName;
             const description = item.type === 'person' ? item.value.email : item.value.description ?? t('chat.channelDescription');
             return <TouchableOpacity onPress={() => setSelected({ kind: item.type, id: item.id, title, description })} style={{ minHeight: 66, flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border }}><View style={{ width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.selected }}><Text style={{ color: colors.primary, fontWeight: '800' }}>{item.type === 'channel' ? '#' : initials(title)}</Text></View><View style={{ flex: 1, marginLeft: 12 }}><Text numberOfLines={1} style={{ fontSize: 15, fontWeight: '800', color: colors.foreground }}>{title}</Text><Text numberOfLines={1} style={{ marginTop: 3, fontSize: 12, color: colors.mutedForeground }}>{description}</Text></View><Text style={{ color: colors.mutedForeground, fontSize: 22 }}>›</Text></TouchableOpacity>;
           }}
-          ListEmptyComponent={(channelsQuery.isLoading || peopleQuery.isLoading) ? <ActivityIndicator color={colors.primary} /> : null}
         />
       </Screen>
     );

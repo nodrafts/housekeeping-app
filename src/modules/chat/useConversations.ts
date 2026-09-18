@@ -16,13 +16,30 @@ export interface ConversationPerson {
   email: string;
 }
 
+function unpackChannels(payload: any): Array<ConversationChannel | string> {
+  const data = payload?.data ?? payload;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.channels)) return data.channels;
+  return [];
+}
+
+function unpackEmployees(payload: any): any[] {
+  const data = payload?.data ?? payload;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.employees)) return data.employees;
+  if (Array.isArray(data?.content)) return data.content;
+  if (Array.isArray(data?.data?.employees)) return data.data.employees;
+  return [];
+}
+
 export function useConversationChannels() {
   return useQuery({
     queryKey: ['chat', 'channels'],
     queryFn: async () => {
-      const response = await chatApi.get<Array<ConversationChannel | string>>('/channels');
-      if (!Array.isArray(response.data)) return [];
-      return response.data.map((channel) => typeof channel === 'string' ? { channelName: channel } : channel);
+      const response = await chatApi.get('/channels');
+      return unpackChannels(response.data)
+        .map((channel) => typeof channel === 'string' ? { channelName: channel } : channel)
+        .filter((channel) => !!channel.channelName);
     },
   });
 }
@@ -32,13 +49,14 @@ export function useConversationPeople(orgId?: string, currentUserId?: string) {
     queryKey: ['chat', 'people', orgId],
     enabled: !!orgId,
     queryFn: async () => {
-      const response = await api.get(`/api/v1/orgs/${encodeURIComponent(orgId!)}/employees`);
-      const employees = response.data?.data?.employees ?? response.data?.data ?? [];
-      if (!Array.isArray(employees)) return [];
-      return employees
+      const response = await api.get(`/api/v1/orgs/${encodeURIComponent(orgId!)}/employees`, {
+        headers: { 'X-Org-Id': orgId! },
+        params: { view: 'flat' },
+      });
+      return unpackEmployees(response.data)
         .map((employee: any): ConversationPerson => ({
-          userId: String(employee.id ?? employee.userId ?? ''),
-          name: String(employee.name ?? employee.email ?? ''),
+          userId: String(employee.id ?? employee.userId ?? employee.employeeId ?? ''),
+          name: String(employee.name || [employee.firstName, employee.lastName].filter(Boolean).join(' ') || employee.email || ''),
           email: String(employee.email ?? ''),
         }))
         .filter((person: ConversationPerson) => person.userId && person.userId !== currentUserId);

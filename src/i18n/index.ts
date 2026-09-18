@@ -40,6 +40,7 @@ const en = {
   chat: {
     title: 'Chat', channels: 'Channels', directMessages: 'Direct messages', search: 'Search channels or people...',
     loading: 'Loading conversations...', noChannels: 'No channels found', noPeople: 'No coworkers found',
+    channelsLoadFailed: 'Could not load channels.', peopleLoadFailed: 'Could not load coworkers.',
     loadingMessages: 'Loading messages...', noMessages: 'No messages yet.', loadFailed: 'Could not load messages.',
     typeMessage: 'Type your message...', send: 'Send', unknown: 'Unknown', back: 'Back', connected: 'Connected', reconnecting: 'Reconnecting',
     incident: 'Incident {{id}}', room: 'Room', item: 'Item', issue: 'Issue', category: 'Category', severity: 'Severity',
@@ -121,6 +122,7 @@ const es: typeof en = {
   chat: {
     title: 'Chat', channels: 'Canales', directMessages: 'Mensajes directos', search: 'Buscar canales o personas...',
     loading: 'Cargando conversaciones...', noChannels: 'No se encontraron canales', noPeople: 'No se encontraron compañeros',
+    channelsLoadFailed: 'No se pudieron cargar los canales.', peopleLoadFailed: 'No se pudieron cargar los compañeros.',
     loadingMessages: 'Cargando mensajes...', noMessages: 'Todavía no hay mensajes.', loadFailed: 'No se pudieron cargar los mensajes.',
     typeMessage: 'Escribe tu mensaje...', send: 'Enviar', unknown: 'Desconocido', back: 'Atrás', connected: 'Conectado', reconnecting: 'Reconectando',
     incident: 'Incidente {{id}}', room: 'Habitación', item: 'Artículo', issue: 'Problema', category: 'Categoría', severity: 'Gravedad',
