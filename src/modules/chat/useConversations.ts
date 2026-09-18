@@ -45,15 +45,14 @@ export function useConversationChannels() {
   });
 }
 
-export function useConversationPeople(orgId?: string, currentUserId?: string) {
+export function useConversationPeople(orgId?: string, hotelCode?: string, currentUserId?: string) {
   return useQuery({
-    queryKey: ['chat', 'people', orgId],
-    enabled: !!orgId,
+    queryKey: ['chat', 'people', orgId, hotelCode],
+    enabled: !!orgId && !!hotelCode,
     retry: false,
     queryFn: async () => {
-      const response = await api.get(`/api/v1/orgs/${encodeURIComponent(orgId!)}/employees`, {
+      const response = await api.get(`/api/v1/orgs/${encodeURIComponent(orgId!)}/hotels/${encodeURIComponent(hotelCode!)}/employee-directory`, {
         headers: { 'X-Org-Id': orgId! },
-        params: { view: 'flat' },
         timeout: 15000,
       });
       return unpackEmployees(response.data)
