@@ -23,7 +23,7 @@ export function useRealtimeChannel(params: {
   }, [params.userId, params.token]);
 
   useEffect(() => {
-    if (status !== 'connected') return;
+    if (status !== 'connected' || !params.channelName) return;
     realtimeChatClient.subscribeToChannel(params.channelName);
   }, [status, params.channelName]);
 

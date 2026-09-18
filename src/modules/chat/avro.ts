@@ -168,3 +168,28 @@ export function createGroupTextMessageEvent(params: {
   };
 }
 
+export function createUserTextMessageEvent(params: {
+  userId: string;
+  targetUserId: string;
+  text: string;
+  messageId?: string;
+  eventId?: string;
+}): unknown {
+  const now = Date.now();
+  return {
+    event_id: params.eventId ?? createEventId(),
+    occurred_at: now,
+    producer: 'mobile-app',
+    body: {
+      'com.nodrafts.ChatTextMessage': {
+        message_id: params.messageId ?? createMessageId(),
+        user_id: params.userId,
+        text: params.text,
+        created_at: now,
+        destination: { type: 'USER', group_name: null, user_id: params.targetUserId },
+        reply: null,
+      },
+    },
+  };
+}
+

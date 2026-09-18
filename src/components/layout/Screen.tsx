@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, View } from 'react-native';
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../lib/theme';
 
 interface Props {
@@ -9,7 +10,7 @@ interface Props {
 
 export function Screen({ children }: Props) {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ flex: 1 }}>{children}</View>
     </SafeAreaView>
   );

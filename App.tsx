@@ -7,6 +7,7 @@ import { queryClient } from './src/lib/queryClient';
 
 import { HotelProvider } from './src/modules/hotel/useHotelStore';
 import { loadAppLanguage } from './src/i18n';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function App() {
   useEffect(() => {
@@ -14,14 +15,16 @@ export default function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <HotelProvider>
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
-        </HotelProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <HotelProvider>
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </HotelProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

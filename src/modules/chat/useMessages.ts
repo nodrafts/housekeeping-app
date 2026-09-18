@@ -67,3 +67,17 @@ export function useMessages(groupName: string, limit = 50) {
   });
 }
 
+export function useDirectMessages(otherUserId: string, limit = 50) {
+  return useQuery({
+    queryKey: ['chat', 'direct-messages', otherUserId, limit],
+    queryFn: async () => {
+      const res = await chatApi.get('/messages/direct', { params: { otherUserId, limit } });
+      return normalizeMessages(res.data, otherUserId);
+    },
+    enabled: !!otherUserId,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
+  });
+}
+

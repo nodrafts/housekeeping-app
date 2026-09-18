@@ -35,6 +35,15 @@ const en = {
     completePercent: '{{percent}}% complete', issues_one: '{{count}} issue', issues_other: '{{count}} issues',
     starting: 'Starting...', cleaningStarted: 'Cleaning started', elapsed: 'Cleaning for {{time}}',
     couldNotStart: 'Could not start cleaning',
+    greeting: 'Good morning, {{name}}', toDoCount: '{{count}} to do', readyCount: '{{count}} ready', allCount: 'All {{count}}',
+  },
+  chat: {
+    title: 'Chat', channels: 'Channels', directMessages: 'Direct messages', search: 'Search channels or people...',
+    loading: 'Loading conversations...', noChannels: 'No channels found', noPeople: 'No coworkers found',
+    loadingMessages: 'Loading messages...', noMessages: 'No messages yet.', loadFailed: 'Could not load messages.',
+    typeMessage: 'Type your message...', send: 'Send', unknown: 'Unknown', back: 'Back', connected: 'Connected', reconnecting: 'Reconnecting',
+    incident: 'Incident {{id}}', room: 'Room', item: 'Item', issue: 'Issue', category: 'Category', severity: 'Severity',
+    incidentHelp: 'This information is parsed from the incident notification message.', close: 'Close', channelDescription: 'Team conversation',
   },
   status: { ready: 'Ready', cleaning: 'Cleaning', stayOver: 'Stay over', checkout: 'Checkout' },
   checklist: {
@@ -107,6 +116,15 @@ const es: typeof en = {
     completePercent: '{{percent}}% completado', issues_one: '{{count}} problema', issues_other: '{{count}} problemas',
     starting: 'Iniciando...', cleaningStarted: 'Limpieza iniciada', elapsed: 'Limpiando durante {{time}}',
     couldNotStart: 'No se pudo iniciar la limpieza',
+    greeting: 'Buenos días, {{name}}', toDoCount: '{{count}} pendientes', readyCount: '{{count}} listas', allCount: 'Todas {{count}}',
+  },
+  chat: {
+    title: 'Chat', channels: 'Canales', directMessages: 'Mensajes directos', search: 'Buscar canales o personas...',
+    loading: 'Cargando conversaciones...', noChannels: 'No se encontraron canales', noPeople: 'No se encontraron compañeros',
+    loadingMessages: 'Cargando mensajes...', noMessages: 'Todavía no hay mensajes.', loadFailed: 'No se pudieron cargar los mensajes.',
+    typeMessage: 'Escribe tu mensaje...', send: 'Enviar', unknown: 'Desconocido', back: 'Atrás', connected: 'Conectado', reconnecting: 'Reconectando',
+    incident: 'Incidente {{id}}', room: 'Habitación', item: 'Artículo', issue: 'Problema', category: 'Categoría', severity: 'Gravedad',
+    incidentHelp: 'Esta información se obtiene del mensaje de notificación del incidente.', close: 'Cerrar', channelDescription: 'Conversación del equipo',
   },
   status: { ready: 'Lista', cleaning: 'Limpiando', stayOver: 'Huésped permanece', checkout: 'Salida' },
   checklist: {

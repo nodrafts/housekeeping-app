@@ -2,6 +2,7 @@ import SockJS from 'sockjs-client';
 import { Client, type IMessage } from '@stomp/stompjs';
 import {
   createGroupTextMessageEvent,
+  createUserTextMessageEvent,
   decodeChatEventFromBase64,
   encodeChatEventToBase64,
 } from './avro';
@@ -125,6 +126,21 @@ class RealtimeChatClient {
         token: this.currentToken,
         content,
       }),
+    });
+  }
+
+  sendTextToUser(params: { targetUserId: string; text: string; messageId: string }) {
+    if (!this.client || this.status !== 'connected') return;
+    if (!this.currentUserId || !this.currentToken) return;
+    const content = encodeChatEventToBase64(createUserTextMessageEvent({
+      userId: this.currentUserId,
+      targetUserId: params.targetUserId,
+      text: params.text,
+      messageId: params.messageId,
+    }));
+    this.client.publish({
+      destination: SEND_DESTINATION,
+      body: JSON.stringify({ userId: this.currentUserId, token: this.currentToken, content }),
     });
   }
 

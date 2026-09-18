@@ -13,6 +13,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../navigation/types';
 import { Screen } from '../components/layout/Screen';
 import { Icon } from '../components/ui/Icon';
+import { BrandLogo } from '../components/ui/BrandLogo';
 import { useAssignments } from '../modules/housekeeping/useAssignments';
 import { useAuth } from '../modules/auth/useAuth';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
@@ -99,7 +100,10 @@ export function RoomsListScreen({ navigation }: Props) {
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View>
             <Text style={{ fontSize: 12, fontWeight: '700', color: '#e9dce9' }}>{selectedHotel?.name ?? hotelCode}</Text>
-            <Text style={{ marginTop: 2, fontSize: 22, fontWeight: '800', color: colors.primaryForeground }}>noDrafts</Text>
+            <View style={{ marginTop: 3, flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+              <BrandLogo width={34} height={23} color={colors.primaryForeground} />
+              <Text style={{ fontSize: 21, fontWeight: '800', color: colors.primaryForeground }}>noDrafts</Text>
+            </View>
             <View style={{ marginTop: 6, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Icon name="sparkles" size={15} color={colors.primaryForeground} />
               <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primaryForeground }}>
@@ -128,10 +132,10 @@ export function RoomsListScreen({ navigation }: Props) {
       </View>
 
       <View style={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: 12, backgroundColor: colors.background }}>
-        <Text style={{ fontSize: 13, color: colors.mutedForeground }}>Good morning, {firstName}</Text>
+        <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{t('rooms.greeting', { name: firstName })}</Text>
         <Text style={{ marginTop: 2, fontSize: 28, fontWeight: '800', color: colors.foreground }}>{t('rooms.title')}</Text>
         <View style={{ marginTop: 14, flexDirection: 'row', gap: 8 }}>
-          {([['TODO', `${Math.max(0, data.length - readyCount)} to do`], ['READY', `${readyCount} ready`], ['ALL', `All ${data.length}`]] as const).map(([value, label]) => (
+          {([['TODO', t('rooms.toDoCount', { count: Math.max(0, data.length - readyCount) })], ['READY', t('rooms.readyCount', { count: readyCount })], ['ALL', t('rooms.allCount', { count: data.length })]] as const).map(([value, label]) => (
             <TouchableOpacity key={value} onPress={() => setFilter(value)} style={{ flex: 1, minHeight: 40, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center', backgroundColor: filter === value ? colors.primary : colors.card, borderWidth: 1, borderColor: filter === value ? colors.primary : colors.border }}>
               <Text style={{ fontSize: 12, fontWeight: '800', color: filter === value ? colors.primaryForeground : colors.foreground }}>{label}</Text>
             </TouchableOpacity>
