@@ -2,10 +2,8 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
-  StatusBar,
   Text,
   TouchableOpacity,
   useWindowDimensions,
@@ -707,7 +705,7 @@ export function ScheduleScreen({ navigation }: any) {
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 14 : 18,
+          paddingTop: 18,
           paddingBottom: 96,
         }}
       >

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { colors, radii } from '../lib/theme';
 import { useAuth } from '../modules/auth/useAuth';
+import { TopSafeArea } from '../components/layout/Screen';
 
 type Organization = { id: string; code: string; name: string };
 
@@ -35,7 +36,8 @@ export function OrganizationSelectScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom']}>
+      <TopSafeArea color={colors.card} />
       <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 28, paddingBottom: 20 }}>
         <Text style={{ fontSize: 26, fontWeight: '800', color: colors.foreground }}>
           {t('auth.selectOrganization')}

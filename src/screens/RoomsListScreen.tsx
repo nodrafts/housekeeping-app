@@ -3,8 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Platform,
-  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -86,11 +84,11 @@ export function RoomsListScreen({ navigation }: Props) {
   };
 
   return (
-    <Screen>
+    <Screen safeAreaColor={colors.primary}>
       <View
         style={{
           paddingHorizontal: 16,
-          paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 10 : 12,
+          paddingTop: 12,
           paddingBottom: 14,
           borderBottomWidth: 1,
           borderBottomColor: colors.accent,

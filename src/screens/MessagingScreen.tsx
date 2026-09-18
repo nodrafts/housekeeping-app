@@ -80,7 +80,7 @@ export function MessagingScreen() {
 
   if (!selected) {
     return (
-      <Screen>
+      <Screen safeAreaColor={colors.primary}>
         <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 18, backgroundColor: colors.primary }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><BrandLogo width={36} height={24} /><Text style={{ color: colors.primaryForeground, fontSize: 20, fontWeight: '800' }}>noDrafts</Text></View>
           <Text style={{ marginTop: 18, color: colors.primaryForeground, fontSize: 28, fontWeight: '800' }}>{t('chat.title')}</Text>
@@ -108,7 +108,7 @@ export function MessagingScreen() {
   }
 
   return (
-    <Screen>
+    <Screen safeAreaColor={colors.primary}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={64}>
         <View style={{ minHeight: 68, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary }}>
           <TouchableOpacity onPress={() => setSelected(null)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: colors.primaryForeground, fontSize: 30 }}>‹</Text></TouchableOpacity>

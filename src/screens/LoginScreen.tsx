@@ -7,6 +7,7 @@ import { BrandLogo } from '../components/ui/BrandLogo';
 import { colors, radii } from '../lib/theme';
 import { useAuth } from '../modules/auth/useAuth';
 import { AuthStackParamList } from '../navigation/types';
+import { TopSafeArea } from '../components/layout/Screen';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -20,7 +21,8 @@ export function LoginScreen({}: Props) {
   const handleLogin = () => login({ email, password });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#201f20' }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#201f20' }} edges={['bottom']}>
+      <TopSafeArea color={colors.primary} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           keyboardShouldPersistTaps="handled"

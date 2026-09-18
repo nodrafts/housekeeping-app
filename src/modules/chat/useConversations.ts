@@ -35,6 +35,7 @@ function unpackEmployees(payload: any): any[] {
 export function useConversationChannels() {
   return useQuery({
     queryKey: ['chat', 'channels'],
+    retry: false,
     queryFn: async () => {
       const response = await chatApi.get('/channels');
       return unpackChannels(response.data)
@@ -48,10 +49,12 @@ export function useConversationPeople(orgId?: string, currentUserId?: string) {
   return useQuery({
     queryKey: ['chat', 'people', orgId],
     enabled: !!orgId,
+    retry: false,
     queryFn: async () => {
       const response = await api.get(`/api/v1/orgs/${encodeURIComponent(orgId!)}/employees`, {
         headers: { 'X-Org-Id': orgId! },
         params: { view: 'flat' },
+        timeout: 15000,
       });
       return unpackEmployees(response.data)
         .map((employee: any): ConversationPerson => ({
