@@ -36,7 +36,11 @@ const en = {
     starting: 'Starting...', cleaningStarted: 'Cleaning started', elapsed: 'Cleaning for {{time}}',
     couldNotStart: 'Could not start cleaning',
     greeting: 'Good morning, {{name}}', toDoCount: '{{count}} to do', readyCount: '{{count}} ready', allCount: 'All {{count}}',
+    complianceJobs: 'Compliance jobs', noComplianceJobs: 'No compliance jobs assigned to you.',
+    complianceLoadFailed: 'Could not load your compliance jobs.', due: 'Due {{date}}',
   },
+  taskStatus: { open: 'Open', inProgress: 'In progress' },
+  taskPriority: { low: 'Low priority', medium: 'Medium priority', high: 'High priority', urgent: 'Urgent' },
   chat: {
     title: 'Chat', channels: 'Channels', directMessages: 'Direct messages', search: 'Search channels or people...',
     loading: 'Loading conversations...', noChannels: 'No channels found', noPeople: 'No coworkers found',
@@ -118,7 +122,11 @@ const es: typeof en = {
     starting: 'Iniciando...', cleaningStarted: 'Limpieza iniciada', elapsed: 'Limpiando durante {{time}}',
     couldNotStart: 'No se pudo iniciar la limpieza',
     greeting: 'Buenos días, {{name}}', toDoCount: '{{count}} pendientes', readyCount: '{{count}} listas', allCount: 'Todas {{count}}',
+    complianceJobs: 'Tareas de cumplimiento', noComplianceJobs: 'No tienes tareas de cumplimiento asignadas.',
+    complianceLoadFailed: 'No se pudieron cargar tus tareas de cumplimiento.', due: 'Vence {{date}}',
   },
+  taskStatus: { open: 'Abierta', inProgress: 'En progreso' },
+  taskPriority: { low: 'Prioridad baja', medium: 'Prioridad media', high: 'Prioridad alta', urgent: 'Urgente' },
   chat: {
     title: 'Chat', channels: 'Canales', directMessages: 'Mensajes directos', search: 'Buscar canales o personas...',
     loading: 'Cargando conversaciones...', noChannels: 'No se encontraron canales', noPeople: 'No se encontraron compañeros',

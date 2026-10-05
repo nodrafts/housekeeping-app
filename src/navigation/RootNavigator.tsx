@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthStackParamList, AppStackParamList, StaffTabParamList, AdminTabParamList } from './types';
@@ -24,15 +26,6 @@ const AppStack = createNativeStackNavigator<AppStackParamList>();
 const StaffTab = createBottomTabNavigator<StaffTabParamList>();
 const AdminTab = createBottomTabNavigator<AdminTabParamList>();
 
-const TAB_BAR_STYLE = {
-  backgroundColor: colors.card,
-  borderTopColor: colors.border,
-  borderTopWidth: 1,
-  height: 64,
-  paddingBottom: 9,
-  paddingTop: 7,
-};
-
 const TAB_TRANSITION = {
   animation: 'timing' as const,
   config: {
@@ -44,17 +37,32 @@ function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
   return <Icon name={name} size={22} color={focused ? colors.primary : colors.mutedForeground} />;
 }
 
+function useTabBarStyle() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'web' ? 14 : 0);
+
+  return useMemo(() => ({
+    backgroundColor: colors.card,
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    height: 64 + bottomInset,
+    paddingBottom: Math.max(9, bottomInset),
+    paddingTop: 7,
+  }), [bottomInset]);
+}
+
 function StaffTabNavigator() {
   const { t } = useTranslation();
+  const tabBarStyle = useTabBarStyle();
   return (
     <StaffTab.Navigator
       id="StaffTabs"
       initialRouteName="Housekeeping"
       screenOptions={{
-        tabBarStyle: TAB_BAR_STYLE,
+        tabBarStyle,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 11, lineHeight: 14, fontWeight: '600' },
         tabBarHideOnKeyboard: true,
         headerShown: false,
         sceneStyle: { backgroundColor: colors.background },
@@ -90,15 +98,16 @@ function StaffTabNavigator() {
 
 function AdminTabNavigator() {
   const { t } = useTranslation();
+  const tabBarStyle = useTabBarStyle();
   return (
     <AdminTab.Navigator
       id="AdminTabs"
       initialRouteName="Housekeeping"
       screenOptions={{
-        tabBarStyle: TAB_BAR_STYLE,
+        tabBarStyle,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 11, lineHeight: 14, fontWeight: '600' },
         tabBarHideOnKeyboard: true,
         headerShown: false,
         sceneStyle: { backgroundColor: colors.background },

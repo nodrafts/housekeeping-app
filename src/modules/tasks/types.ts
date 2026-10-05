@@ -32,7 +32,7 @@ export type Task = {
   priority: TaskPriority;
   ownerId?: string | null;
   assigneeId?: string | null;
-  dueDate?: number | null;
+  dueDate?: string | number | null;
   source?: TaskSource | null;
   additionalInfo?: Record<string, unknown> | null;
   notes: TaskNote[];

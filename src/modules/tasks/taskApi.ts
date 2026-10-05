@@ -85,10 +85,15 @@ export function buildIncidentTaskSource(incidentId: number | string): TaskSource
   };
 }
 
-export function useTasks(params: ListTasksParams = {}, orgId = DEFAULT_ORG_ID) {
+export function useTasks(
+  params: ListTasksParams = {},
+  orgId = DEFAULT_ORG_ID,
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: ['tasks', orgId, params],
     queryFn: () => listTasks(params, orgId),
+    enabled: options.enabled ?? true,
   });
 }
 
