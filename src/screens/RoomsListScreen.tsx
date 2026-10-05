@@ -21,6 +21,8 @@ import { colors, radii } from '../lib/theme';
 import { useTranslation } from 'react-i18next';
 import { useUpdateStatus } from '../modules/housekeeping/useAssignment';
 import { formatCleaningElapsed } from '../modules/housekeeping/cleaningTimer';
+import { useTasks } from '../modules/tasks/taskApi';
+import type { Task } from '../modules/tasks/types';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'RoomsList'> | any;
 
@@ -37,13 +39,37 @@ function progressFor(checklist: { done: boolean }[]) {
   return Math.round((handled / total) * 100);
 }
 
+const FINISHED_TASK_STATUSES = new Set(['COMPLETED', 'DONE', 'CANCELLED', 'CLOSED']);
+
+function formatTaskDate(value: Task['dueDate'], language: string) {
+  if (value == null) return null;
+  const normalizedValue = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? `${value}T00:00:00`
+    : value;
+  const date = new Date(normalizedValue);
+  return Number.isNaN(date.getTime())
+    ? String(value)
+    : date.toLocaleDateString(language.startsWith('es') ? 'es-MX' : 'en-US', { month: 'short', day: 'numeric' });
+}
+
 export function RoomsListScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { selectedHotel } = useHotelStore();
   const hotelCode = selectedHotel?.hotelCode ?? user?.hotelCode ?? DEFAULT_HOTEL_CODE;
   const [selectedDate] = useState(dateToInput(new Date()));
   const { data = [], isLoading, refetch, isFetching } = useAssignments(hotelCode);
+  const complianceParams = useMemo(() => ({
+    hotelCode,
+    taskType: 'COMPLIANCE',
+    assigneeId: 'me',
+    pageSize: 100,
+  }), [hotelCode]);
+  const complianceQuery = useTasks(
+    complianceParams,
+    user?.orgId,
+    { enabled: !!user?.orgId && !!hotelCode },
+  );
   const { data: allIncidents = [] } = useAllIncidents(hotelCode);
   const updateStatus = useUpdateStatus();
   const [startingId, setStartingId] = useState<string | null>(null);
@@ -54,6 +80,10 @@ export function RoomsListScreen({ navigation }: Props) {
     filter === 'ALL' ? true : filter === 'READY' ? item.status === 'READY' : item.status !== 'READY'
   )), [data, filter]);
   const readyCount = data.filter((item) => item.status === 'READY').length;
+  const complianceJobs = useMemo(
+    () => (complianceQuery.data ?? []).filter((task) => !FINISHED_TASK_STATUSES.has(task.status)),
+    [complianceQuery.data],
+  );
   const firstName = user?.name?.trim().split(/\s+/)[0] ?? t('profile.employee');
 
   useEffect(() => {
@@ -82,6 +112,77 @@ export function RoomsListScreen({ navigation }: Props) {
       },
     );
   };
+
+  const refreshAll = () => {
+    void Promise.all([refetch(), complianceQuery.refetch()]);
+  };
+
+  const renderComplianceJobs = () => (
+    <View style={{ marginBottom: 18 }}>
+      <View style={{ marginBottom: 9, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Icon name="document" size={18} color={colors.primary} />
+          <Text style={{ fontSize: 17, fontWeight: '800', color: colors.foreground }}>
+            {t('rooms.complianceJobs')}
+          </Text>
+        </View>
+        {!complianceQuery.isLoading && !complianceQuery.isError ? (
+          <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>
+            {complianceJobs.length}
+          </Text>
+        ) : null}
+      </View>
+
+      {complianceQuery.isLoading ? (
+        <View style={{ minHeight: 64, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      ) : complianceQuery.isError ? (
+        <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, backgroundColor: colors.card, padding: 14 }}>
+          <Text style={{ fontSize: 13, color: colors.destructive }}>{t('rooms.complianceLoadFailed')}</Text>
+          <TouchableOpacity onPress={() => complianceQuery.refetch()} style={{ alignSelf: 'flex-start', minHeight: 38, justifyContent: 'center' }}>
+            <Text style={{ color: colors.primary, fontWeight: '800' }}>{t('common.retry')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : complianceJobs.length === 0 ? (
+        <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, backgroundColor: colors.card, padding: 14 }}>
+          <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{t('rooms.noComplianceJobs')}</Text>
+        </View>
+      ) : complianceJobs.map((task) => {
+        const dueDate = formatTaskDate(task.dueDate, i18n.resolvedLanguage ?? i18n.language);
+        const statusKey = task.status === 'IN_PROGRESS' ? 'inProgress' : 'open';
+        const normalizedPriority = String(task.priority ?? 'MEDIUM').toUpperCase();
+        const priorityKey = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(normalizedPriority)
+          ? normalizedPriority.toLowerCase() as 'low' | 'medium' | 'high' | 'urgent'
+          : 'medium';
+        return (
+          <View key={task.id} style={{ marginBottom: 9, borderWidth: 1, borderColor: colors.input, borderRadius: radii.md, backgroundColor: colors.card, padding: 14 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+              <Text style={{ flex: 1, fontSize: 15, lineHeight: 20, fontWeight: '800', color: colors.foreground }}>
+                {task.title}
+              </Text>
+              <View style={{ borderRadius: radii.pill, backgroundColor: task.status === 'IN_PROGRESS' ? '#fef3c7' : colors.selected, paddingHorizontal: 8, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: task.status === 'IN_PROGRESS' ? '#92400e' : colors.primary }}>
+                  {t(`taskStatus.${statusKey}`)}
+                </Text>
+              </View>
+            </View>
+            {task.description ? (
+              <Text numberOfLines={2} style={{ marginTop: 5, fontSize: 12, lineHeight: 17, color: colors.mutedForeground }}>
+                {task.description}
+              </Text>
+            ) : null}
+            <View style={{ marginTop: 9, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              {dueDate ? <Text style={{ fontSize: 11, fontWeight: '700', color: colors.mutedForeground }}>{t('rooms.due', { date: dueDate })}</Text> : null}
+              <Text style={{ fontSize: 11, fontWeight: '800', color: normalizedPriority === 'URGENT' || normalizedPriority === 'HIGH' ? colors.destructive : colors.mutedForeground }}>
+                {t(`taskPriority.${priorityKey}`)}
+              </Text>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
 
   return (
     <Screen safeAreaColor={colors.primary}>
@@ -149,9 +250,10 @@ export function RoomsListScreen({ navigation }: Props) {
         <FlatList
           data={filteredData}
           keyExtractor={(item) => item.id}
-          refreshing={isFetching}
-          onRefresh={refetch}
+          refreshing={isFetching || complianceQuery.isFetching}
+          onRefresh={refreshAll}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 96 }}
+          ListHeaderComponent={renderComplianceJobs}
           ListEmptyComponent={
             <View
               style={{

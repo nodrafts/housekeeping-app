@@ -14,6 +14,7 @@ export type IconName =
   | 'calendar'
   | 'chat'
   | 'check'
+  | 'document'
   | 'home'
   | 'settings'
   | 'skip'
@@ -120,6 +121,15 @@ export function Icon({
           <Circle cx="12" cy="12" r="10" />
           <Line x1="12" y1="8" x2="12" y2="12" />
           <Line x1="12" y1="16" x2="12.01" y2="16" />
+        </>
+      ) : null}
+
+      {name === 'document' ? (
+        <>
+          <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+          <Polyline points="14 2 14 8 20 8" />
+          <Line x1="8" y1="13" x2="16" y2="13" />
+          <Line x1="8" y1="17" x2="16" y2="17" />
         </>
       ) : null}
     </Svg>
