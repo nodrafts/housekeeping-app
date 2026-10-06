@@ -150,19 +150,26 @@ export function RoomsListScreen({ navigation }: Props) {
         </View>
       ) : complianceJobs.map((task) => {
         const dueDate = formatTaskDate(task.dueDate, i18n.resolvedLanguage ?? i18n.language);
-        const statusKey = task.status === 'IN_PROGRESS' ? 'inProgress' : 'open';
+        const statusKey = task.status === 'SUBMITTED' ? 'submitted' : task.status === 'IN_PROGRESS' ? 'inProgress' : 'open';
         const normalizedPriority = String(task.priority ?? 'MEDIUM').toUpperCase();
         const priorityKey = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(normalizedPriority)
           ? normalizedPriority.toLowerCase() as 'low' | 'medium' | 'high' | 'urgent'
           : 'medium';
         return (
-          <View key={task.id} style={{ marginBottom: 9, borderWidth: 1, borderColor: colors.input, borderRadius: radii.md, backgroundColor: colors.card, padding: 14 }}>
+          <TouchableOpacity
+            key={task.id}
+            onPress={() => navigation.navigate('ComplianceTaskDetails', { taskId: task.id })}
+            activeOpacity={0.78}
+            accessibilityRole="button"
+            accessibilityLabel={task.title}
+            style={{ marginBottom: 9, borderWidth: 1, borderColor: colors.input, borderRadius: radii.md, backgroundColor: colors.card, padding: 14 }}
+          >
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
               <Text style={{ flex: 1, fontSize: 15, lineHeight: 20, fontWeight: '800', color: colors.foreground }}>
                 {task.title}
               </Text>
-              <View style={{ borderRadius: radii.pill, backgroundColor: task.status === 'IN_PROGRESS' ? '#fef3c7' : colors.selected, paddingHorizontal: 8, paddingVertical: 4 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: task.status === 'IN_PROGRESS' ? '#92400e' : colors.primary }}>
+              <View style={{ borderRadius: radii.pill, backgroundColor: task.status === 'IN_PROGRESS' ? '#fef3c7' : task.status === 'SUBMITTED' ? '#dbeafe' : colors.selected, paddingHorizontal: 8, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: task.status === 'IN_PROGRESS' ? '#92400e' : task.status === 'SUBMITTED' ? '#1d4ed8' : colors.primary }}>
                   {t(`taskStatus.${statusKey}`)}
                 </Text>
               </View>
@@ -178,7 +185,11 @@ export function RoomsListScreen({ navigation }: Props) {
                 {t(`taskPriority.${priorityKey}`)}
               </Text>
             </View>
-          </View>
+            <View style={{ marginTop: 9, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 5 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: colors.primary }}>{t('taskDetails.openTask')}</Text>
+              <Text style={{ fontSize: 18, lineHeight: 18, color: colors.primary }}>{'>'}</Text>
+            </View>
+          </TouchableOpacity>
         );
       })}
     </View>
