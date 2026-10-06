@@ -39,8 +39,13 @@ const en = {
     complianceJobs: 'Compliance jobs', noComplianceJobs: 'No compliance jobs assigned to you.',
     complianceLoadFailed: 'Could not load your compliance jobs.', due: 'Due {{date}}',
   },
-  taskStatus: { open: 'Open', inProgress: 'In progress' },
+  taskStatus: { open: 'Open', inProgress: 'In progress', submitted: 'Submitted', completed: 'Completed' },
   taskPriority: { low: 'Low priority', medium: 'Medium priority', high: 'High priority', urgent: 'Urgent' },
+  taskDetails: {
+    title: 'Compliance task', openTask: 'Open task', checklist: 'Checklist', noChecklist: 'No checklist is required for this task.',
+    submit: 'Submit task', submitted: 'Submitted for review', completed: 'Task completed', updateFailed: 'Could not update this task. Please try again.',
+    loadFailed: 'Could not load this task.', completedCount: '{{done}} of {{total}} completed', due: 'Due {{date}}',
+  },
   chat: {
     title: 'Chat', channels: 'Channels', directMessages: 'Direct messages', search: 'Search channels or people...',
     loading: 'Loading conversations...', noChannels: 'No channels found', noPeople: 'No coworkers found',
@@ -130,8 +135,13 @@ const es: typeof en = {
     complianceJobs: 'Tareas de cumplimiento', noComplianceJobs: 'No tienes tareas de cumplimiento asignadas.',
     complianceLoadFailed: 'No se pudieron cargar tus tareas de cumplimiento.', due: 'Vence {{date}}',
   },
-  taskStatus: { open: 'Abierta', inProgress: 'En progreso' },
+  taskStatus: { open: 'Abierta', inProgress: 'En progreso', submitted: 'Enviada', completed: 'Completada' },
   taskPriority: { low: 'Prioridad baja', medium: 'Prioridad media', high: 'Prioridad alta', urgent: 'Urgente' },
+  taskDetails: {
+    title: 'Tarea de cumplimiento', openTask: 'Abrir tarea', checklist: 'Lista de tareas', noChecklist: 'Esta tarea no requiere una lista.',
+    submit: 'Enviar tarea', submitted: 'Enviada para revisión', completed: 'Tarea completada', updateFailed: 'No se pudo actualizar esta tarea. Inténtalo de nuevo.',
+    loadFailed: 'No se pudo cargar esta tarea.', completedCount: '{{done}} de {{total}} completadas', due: 'Vence {{date}}',
+  },
   chat: {
     title: 'Chat', channels: 'Canales', directMessages: 'Mensajes directos', search: 'Buscar canales o personas...',
     loading: 'Cargando conversaciones...', noChannels: 'No se encontraron canales', noPeople: 'No se encontraron compañeros',

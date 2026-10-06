@@ -9,6 +9,7 @@ import { RoomsListScreen } from '../screens/RoomsListScreen';
 import { ScheduleScreen } from '../screens/ScheduleScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { RoomDetailsScreen } from '../screens/RoomDetailsScreen';
+import { ComplianceTaskDetailsScreen } from '../screens/ComplianceTaskDetailsScreen';
 import { ReportIssueScreen } from '../screens/ReportIssueScreen';
 import { HotelSelectScreen } from '../screens/HotelSelectScreen';
 import { useAuth } from '../modules/auth/useAuth';
@@ -186,6 +187,11 @@ function AppNavigator() {
       <AppStack.Screen
         name="RoomDetails"
         component={RoomDetailsScreen}
+        options={{ headerShown: false }}
+      />
+      <AppStack.Screen
+        name="ComplianceTaskDetails"
+        component={ComplianceTaskDetailsScreen}
         options={{ headerShown: false }}
       />
       <AppStack.Screen
