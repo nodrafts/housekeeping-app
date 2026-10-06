@@ -14,8 +14,10 @@ export type IconName =
   | 'calendar'
   | 'chat'
   | 'check'
-  | 'document'
   | 'home'
+  | 'document'
+  | 'help-circle'
+  | 'shield'
   | 'settings'
   | 'skip'
   | 'sparkles'
@@ -130,6 +132,21 @@ export function Icon({
           <Polyline points="14 2 14 8 20 8" />
           <Line x1="8" y1="13" x2="16" y2="13" />
           <Line x1="8" y1="17" x2="16" y2="17" />
+        </>
+      ) : null}
+
+      {name === 'help-circle' ? (
+        <>
+          <Circle cx="12" cy="12" r="10" />
+          <Path d="M9.1 9a3 3 0 1 1 5.1 2.1c-1.2.8-2.2 1.4-2.2 2.9" />
+          <Line x1="12" y1="18" x2="12.01" y2="18" />
+        </>
+      ) : null}
+
+      {name === 'shield' ? (
+        <>
+          <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+          <Polyline points="9 12 11 14 15 10" />
         </>
       ) : null}
     </Svg>

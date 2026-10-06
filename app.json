@@ -3,22 +3,32 @@
     "name": "NoDrafts Housekeeping",
     "slug": "nodrafts-housekeeping",
     "version": "1.0.0",
+    "icon": "./assets/app-icon.png",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "nodrafts-housekeeping",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.nodrafts.housekeeping"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.nodrafts.housekeeping",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "package": "com.nodrafts.housekeeping"
+      "package": "com.nodrafts.housekeeping",
+      "versionCode": 1,
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       [
         "expo-image-picker",
         {
           "photosPermission": "Allow NoDrafts Housekeeping to attach photos to incident reports.",
-          "cameraPermission": "Allow NoDrafts Housekeeping to take incident photos."
+          "cameraPermission": "Allow NoDrafts Housekeeping to take incident photos.",
+          "microphonePermission": false
         }
       ],
       "expo-localization"

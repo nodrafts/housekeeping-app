@@ -65,7 +65,12 @@ const en = {
     admin: 'Admin', staff: 'Staff', language: 'Language', languageDescription: 'Choose the language used in the app.',
     english: 'English', spanish: 'Español', logoutTitle: 'Logout', logoutConfirm: 'Are you sure?',
   },
-  profile: { title: 'Profile', employee: 'Employee', assignedHotel: 'Assigned hotel' },
+  profile: {
+    title: 'Profile', employee: 'Employee', assignedHotel: 'Assigned hotel', helpLegal: 'Help & legal',
+    support: 'Support', supportDescription: 'Get help with NoDrafts Housekeeping', privacy: 'Privacy Policy',
+    privacyDescription: 'Learn how we handle your information', terms: 'Terms of Service',
+    termsDescription: 'Read the terms for using this app', openLinkFailed: 'Could not open this page.',
+  },
   issue: {
     report: 'Report an Issue', missingInfo: 'Missing info', fillAll: 'Please fill in all fields.',
     reported: 'Issue reported', couldNotSend: 'Could not send incident', itemType: 'Item type', item: 'Item',
@@ -151,7 +156,12 @@ const es: typeof en = {
     admin: 'Administrador', staff: 'Personal', language: 'Idioma', languageDescription: 'Elige el idioma de la aplicación.',
     english: 'English', spanish: 'Español', logoutTitle: 'Cerrar sesión', logoutConfirm: '¿Estás seguro?',
   },
-  profile: { title: 'Perfil', employee: 'Empleado', assignedHotel: 'Hotel asignado' },
+  profile: {
+    title: 'Perfil', employee: 'Empleado', assignedHotel: 'Hotel asignado', helpLegal: 'Ayuda y aspectos legales',
+    support: 'Soporte', supportDescription: 'Obtén ayuda con NoDrafts Housekeeping', privacy: 'Política de privacidad',
+    privacyDescription: 'Conoce cómo manejamos tu información', terms: 'Términos de servicio',
+    termsDescription: 'Lee los términos para usar esta aplicación', openLinkFailed: 'No se pudo abrir esta página.',
+  },
   issue: {
     report: 'Reportar un problema', missingInfo: 'Falta información', fillAll: 'Completa todos los campos.',
     reported: 'Problema reportado', couldNotSend: 'No se pudo enviar el incidente', itemType: 'Tipo de artículo', item: 'Artículo',

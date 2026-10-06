@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '../components/layout/Screen';
 import { useAuth } from '../modules/auth/useAuth';
@@ -7,6 +7,8 @@ import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { useRole } from '../modules/auth/useRole';
 import { colors, radii } from '../lib/theme';
 import { appLanguage, changeAppLanguage, type AppLanguage } from '../i18n';
+import { Icon, type IconName } from '../components/ui/Icon';
+import { PRIVACY_URL, SUPPORT_URL, TERMS_URL } from '../lib/legal';
 
 function initials(name?: string | null) {
   const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
@@ -31,6 +33,18 @@ export function ProfileScreen() {
     setSelectedHotel(null);
     logout();
   };
+  const openLink = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(t('profile.openLinkFailed'));
+    }
+  };
+  const links: Array<{ icon: IconName; label: string; description: string; url: string }> = [
+    { icon: 'help-circle', label: t('profile.support'), description: t('profile.supportDescription'), url: SUPPORT_URL },
+    { icon: 'shield', label: t('profile.privacy'), description: t('profile.privacyDescription'), url: PRIVACY_URL },
+    { icon: 'document', label: t('profile.terms'), description: t('profile.termsDescription'), url: TERMS_URL },
+  ];
 
   return (
     <Screen>
@@ -118,6 +132,29 @@ export function ProfileScreen() {
               );
             })}
           </View>
+        </View>
+
+        <View style={{ marginTop: 16, backgroundColor: colors.card, borderRadius: radii.lg, paddingHorizontal: 18, paddingTop: 18, borderWidth: 1, borderColor: colors.border }}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: colors.mutedForeground, textTransform: 'uppercase', marginBottom: 6 }}>
+            {t('profile.helpLegal')}
+          </Text>
+          {links.map((link, index) => (
+            <TouchableOpacity
+              key={link.url}
+              onPress={() => openLink(link.url)}
+              accessibilityRole="link"
+              style={{ minHeight: 68, flexDirection: 'row', alignItems: 'center', borderBottomWidth: index === links.length - 1 ? 0 : 1, borderBottomColor: colors.border }}
+            >
+              <View style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.selected, marginRight: 12 }}>
+                <Icon name={link.icon} size={19} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.foreground }}>{link.label}</Text>
+                <Text style={{ marginTop: 2, fontSize: 12, color: colors.mutedForeground }}>{link.description}</Text>
+              </View>
+              <Text style={{ fontSize: 20, color: colors.mutedForeground, marginLeft: 10 }}>{'>'}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         <TouchableOpacity
