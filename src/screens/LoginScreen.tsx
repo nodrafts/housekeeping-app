@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { colors, radii } from '../lib/theme';
 import { useAuth } from '../modules/auth/useAuth';
 import { AuthStackParamList } from '../navigation/types';
 import { TopSafeArea } from '../components/layout/Screen';
+import { PRIVACY_URL, SUPPORT_URL, TERMS_URL } from '../lib/legal';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -19,6 +20,19 @@ export function LoginScreen({}: Props) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => login({ email, password });
+  const openLink = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(t('profile.openLinkFailed'));
+    }
+  };
+
+  const legalLinks = [
+    { label: t('profile.terms'), url: TERMS_URL },
+    { label: t('profile.privacy'), url: PRIVACY_URL },
+    { label: t('profile.support'), url: SUPPORT_URL },
+  ];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#201f20' }} edges={['bottom']}>
@@ -90,6 +104,23 @@ export function LoginScreen({}: Props) {
 
             <View style={{ marginTop: 24, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 20 }}>
               <Text style={{ textAlign: 'center', color: colors.mutedForeground, fontSize: 12, lineHeight: 18 }}>{t('auth.loginFooter')}</Text>
+              <Text style={{ marginTop: 14, textAlign: 'center', color: colors.mutedForeground, fontSize: 11, lineHeight: 17 }}>
+                {t('auth.terms')}
+              </Text>
+              <View style={{ marginTop: 8, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+                {legalLinks.map((link) => (
+                  <TouchableOpacity
+                    key={link.url}
+                    onPress={() => openLink(link.url)}
+                    accessibilityRole="link"
+                    style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 }}
+                  >
+                    <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700', textDecorationLine: 'underline' }}>
+                      {link.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
         </ScrollView>

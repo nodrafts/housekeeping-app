@@ -27,7 +27,7 @@ const en = {
     selectOrganization: 'Select an organization', selectOrganizationSubtitle: 'Choose the organization you want to manage.',
     selectingOrganization: 'Opening organization...', loadOrganizationsFailed: 'Could not load organizations.',
     noOrganizations: 'No organizations are available.', selectOrganizationFailed: 'Could not open this organization. Please try again.',
-    terms: 'By signing in, you agree to our Terms of Service and Privacy Policy.',
+    terms: 'By signing in, you agree to the applicable terms and privacy practices.',
   },
   rooms: {
     title: 'Housekeeping', today: 'Today {{date}}', room: 'Room {{number}}', floor: 'Floor {{floor}}',
@@ -123,7 +123,7 @@ const es: typeof en = {
     selectOrganization: 'Seleccionar una organización', selectOrganizationSubtitle: 'Elige la organización que deseas administrar.',
     selectingOrganization: 'Abriendo organización...', loadOrganizationsFailed: 'No se pudieron cargar las organizaciones.',
     noOrganizations: 'No hay organizaciones disponibles.', selectOrganizationFailed: 'No se pudo abrir esta organización. Inténtalo de nuevo.',
-    terms: 'Al iniciar sesión, aceptas nuestros Términos de servicio y Política de privacidad.',
+    terms: 'Al iniciar sesión, aceptas los términos y las prácticas de privacidad aplicables.',
   },
   rooms: {
     title: 'Limpieza', today: 'Hoy {{date}}', room: 'Habitación {{number}}', floor: 'Piso {{floor}}',
