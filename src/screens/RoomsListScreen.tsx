@@ -196,37 +196,44 @@ export function RoomsListScreen({ navigation }: Props) {
           backgroundColor: colors.primary,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#e9dce9' }}>{selectedHotel?.name ?? hotelCode}</Text>
-            <View style={{ marginTop: 3, flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-              <BrandLogo width={34} height={23} color={colors.primaryForeground} />
-              <Text style={{ fontSize: 21, fontWeight: '800', color: colors.primaryForeground }}>noDrafts</Text>
-            </View>
-            <View style={{ marginTop: 6, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Icon name="sparkles" size={15} color={colors.primaryForeground} />
-              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primaryForeground }}>
-                {t('rooms.today', { date: selectedDate })}
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('HotelSelect')}
-            style={{
-              maxWidth: 132,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              borderRadius: radii.pill,
-              borderWidth: 1,
-              borderColor: '#8a5b8b',
-              backgroundColor: colors.accent,
-            }}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('HotelSelect')}
+          activeOpacity={0.75}
+          style={{
+            width: '100%',
+            minHeight: 44,
+            paddingHorizontal: 13,
+            borderRadius: radii.md,
+            borderWidth: 1,
+            borderColor: '#8a5b8b',
+            backgroundColor: colors.accent,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 9,
+          }}
+        >
+          <Icon name="bed" size={18} color={colors.primaryForeground} />
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.78}
+            style={{ flex: 1, fontSize: 14, fontWeight: '800', color: colors.primaryForeground }}
           >
-            <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: '800', color: colors.primaryForeground }}>
-              {hotelCode}
+            {selectedHotel?.name ?? user?.hotelName ?? hotelCode}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={{ marginTop: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+            <BrandLogo width={34} height={23} color={colors.primaryForeground} />
+            <Text style={{ fontSize: 21, fontWeight: '800', color: colors.primaryForeground }}>noDrafts</Text>
+          </View>
+          <View style={{ marginTop: 6, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Icon name="sparkles" size={15} color={colors.primaryForeground} />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primaryForeground }}>
+              {t('rooms.today', { date: selectedDate })}
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
 

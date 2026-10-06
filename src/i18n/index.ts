@@ -89,7 +89,7 @@ const en = {
     title: 'Schedule', loading: 'Loading shifts...', loadFailed: 'Unable to load shifts', noShift: 'No shift',
     swap: 'Swap', swapShift: 'Swap shift', yourShift: 'Your shift', targetDate: 'Target date', swapWith: 'Swap with',
     noStaff: 'No available staff found', availableStaff: 'Available staff for this shift time', submitSwap: 'Request swap',
-    submitting: 'Submitting...', day: 'Day', week: 'Week', month: 'Month',
+    submitting: 'Submitting...', day: 'Day', week: 'Week', month: 'Month', chooseDate: 'Choose date',
   },
 };
 
@@ -175,7 +175,7 @@ const es: typeof en = {
     title: 'Horario', loading: 'Cargando turnos...', loadFailed: 'No se pudieron cargar los turnos', noShift: 'Sin turno',
     swap: 'Cambiar', swapShift: 'Cambiar turno', yourShift: 'Tu turno', targetDate: 'Fecha deseada', swapWith: 'Cambiar con',
     noStaff: 'No se encontró personal disponible', availableStaff: 'Personal disponible para este horario', submitSwap: 'Solicitar cambio',
-    submitting: 'Enviando...', day: 'Día', week: 'Semana', month: 'Mes',
+    submitting: 'Enviando...', day: 'Día', week: 'Semana', month: 'Mes', chooseDate: 'Elegir fecha',
   },
 };
 

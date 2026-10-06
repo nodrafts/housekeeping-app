@@ -244,7 +244,6 @@ export function ScheduleScreen({ navigation }: any) {
   const dayBounds = useMemo(() => timelineBounds(daySchedules), [daySchedules]);
   const weekBounds = useMemo(() => timelineBounds(schedules), [schedules]);
   const errorMessage = scheduleQuery.error ? getApiErrorMessage(scheduleQuery.error) : null;
-  const weekDay = selectedDateObject.toLocaleDateString(undefined, { weekday: 'long' });
   const monthCellsForView = useMemo(() => monthCells(monthDate), [monthDate]);
   const currentSchedule = daySchedules[0];
   const activeSwapSchedule = useMemo(
@@ -276,10 +275,6 @@ export function ScheduleScreen({ navigation }: any) {
 
   const chooseMonth = (delta: number) => {
     setVisibleMonth((date) => addMonths(date, delta));
-  };
-
-  const changeWeek = (delta: number) => {
-    setSelectedDate(dateToInput(addDays(weekStart, delta * WEEK_VISIBLE_DAYS)));
   };
 
   const openDayFromWeek = (dateInput: string) => {
@@ -710,61 +705,83 @@ export function ScheduleScreen({ navigation }: any) {
         }}
       >
         <View style={{ marginBottom: 14 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-            <TouchableOpacity onPress={openCalendar} activeOpacity={0.72} style={{ flex: 1 }}>
-              <Text style={{ fontSize: 26, lineHeight: 32, fontWeight: '800', color: colors.foreground }}>
-                {viewMode === 'week'
-                  ? formatWeekTitle(weekStart)
-                  : viewMode === 'month'
-                    ? selectedDateObject.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
-                    : formatDayTitle(selectedDateObject)}
-              </Text>
-              <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={{ fontSize: 13, fontWeight: '800', letterSpacing: 0, textTransform: 'uppercase', color: colors.primary }}>
-                  {viewMode === 'day' ? weekDay : t(`schedule.${viewMode}`)}
-                </Text>
-                <Icon name="calendar" size={14} color={colors.primary} />
-              </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('HotelSelect')}
+            activeOpacity={0.75}
+            style={{
+              width: '100%',
+              minHeight: 44,
+              paddingHorizontal: 13,
+              borderRadius: radii.md,
+              borderWidth: 1,
+              borderColor: colors.input,
+              backgroundColor: colors.card,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 9,
+            }}
+          >
+            <Icon name="bed" size={18} color={colors.primary} />
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
+              style={{ flex: 1, fontSize: 14, fontWeight: '800', color: colors.foreground }}
+            >
+              {selectedHotel?.name ?? user?.hotelName ?? hotelCode}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.72}
+              style={{ flex: 1, fontSize: 18, lineHeight: 22, fontWeight: '800', color: colors.foreground }}
+            >
+              {viewMode === 'week'
+                ? formatWeekTitle(weekStart)
+                : viewMode === 'month'
+                  ? selectedDateObject.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+                  : formatDayTitle(selectedDateObject)}
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setModeOpen(true)}
+              style={{
+                minWidth: 60,
+                height: 40,
+                borderRadius: radii.pill,
+                borderWidth: 1,
+                borderColor: colors.input,
+                paddingHorizontal: 12,
+                backgroundColor: colors.card,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              activeOpacity={0.75}
+            >
+              <Text style={{ fontSize: 12, fontWeight: '800', color: colors.foreground }}>{t(`schedule.${viewMode}`)}</Text>
             </TouchableOpacity>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <TouchableOpacity
-                onPress={() => setModeOpen(true)}
-                style={{
-                  height: 34,
-                  borderRadius: radii.pill,
-                  borderWidth: 1,
-                  borderColor: colors.input,
-                  paddingHorizontal: 12,
-                  backgroundColor: colors.card,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                activeOpacity={0.75}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.foreground }}>{t(`schedule.${viewMode}`)}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => navigation.navigate('HotelSelect')}
-                style={{
-                  maxWidth: 92,
-                  paddingHorizontal: 12,
-                  height: 34,
-                  borderRadius: radii.pill,
-                  borderWidth: 1,
-                  borderColor: colors.input,
-                  backgroundColor: colors.card,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                activeOpacity={0.75}
-              >
-                <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: '700', color: colors.foreground }}>
-                  {selectedHotel?.name ?? hotelCode}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={openCalendar}
+              accessibilityRole="button"
+              accessibilityLabel={t('schedule.chooseDate')}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: radii.pill,
+                borderWidth: 1,
+                borderColor: colors.input,
+                backgroundColor: colors.card,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              activeOpacity={0.75}
+            >
+              <Icon name="calendar" size={18} color={colors.primary} />
+            </TouchableOpacity>
           </View>
 
           {canSwap ? (
@@ -784,64 +801,6 @@ export function ScheduleScreen({ navigation }: any) {
                 activeOpacity={0.75}
               >
                 <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>{t('schedule.swap')}</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-
-          {viewMode === 'week' ? (
-            <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <TouchableOpacity
-                onPress={() => changeWeek(-1)}
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.pill,
-                  borderWidth: 1,
-                  borderColor: colors.input,
-                  backgroundColor: colors.card,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                activeOpacity={0.75}
-              >
-                <Text style={{ fontSize: 18, fontWeight: '800', color: colors.primary }}>{'<'}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={openCalendar}
-                style={{
-                  flex: 1,
-                  minHeight: 38,
-                  borderRadius: radii.pill,
-                  borderWidth: 1,
-                  borderColor: colors.input,
-                  backgroundColor: colors.card,
-                  paddingHorizontal: 12,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                activeOpacity={0.75}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.foreground }} numberOfLines={1}>
-                  {dateToInput(weekStart)} to {dateToInput(addDays(weekStart, WEEK_VISIBLE_DAYS - 1))}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => changeWeek(1)}
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.pill,
-                  borderWidth: 1,
-                  borderColor: colors.input,
-                  backgroundColor: colors.card,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                activeOpacity={0.75}
-              >
-                <Text style={{ fontSize: 18, fontWeight: '800', color: colors.primary }}>{'>'}</Text>
               </TouchableOpacity>
             </View>
           ) : null}
