@@ -22,6 +22,9 @@
         "android.permission.RECORD_AUDIO"
       ]
     },
+    "web": {
+      "favicon": "./assets/app-icon.png"
+    },
     "plugins": [
       [
         "expo-image-picker",

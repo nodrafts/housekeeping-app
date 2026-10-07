@@ -1,0 +1,19 @@
+{
+  "name": "NoDrafts Housekeeping",
+  "short_name": "Housekeeping",
+  "description": "Housekeeping operations and staff workflow management.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f8f8f8",
+  "theme_color": "#4a154b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "app-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
