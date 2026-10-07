@@ -10,7 +10,6 @@ import { ScheduleScreen } from '../screens/ScheduleScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { RoomDetailsScreen } from '../screens/RoomDetailsScreen';
 import { ReportIssueScreen } from '../screens/ReportIssueScreen';
-import { HotelSelectScreen } from '../screens/HotelSelectScreen';
 import { useAuth } from '../modules/auth/useAuth';
 import { useRole } from '../modules/auth/useRole';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
@@ -192,11 +191,6 @@ function AppNavigator() {
         name="RoomsList"
         component={RoomsListScreen}
         options={{ title: t('navigation.housekeeping') }}
-      />
-      <AppStack.Screen
-        name="HotelSelect"
-        component={HotelSelectScreen}
-        options={{ headerShown: false, presentation: 'transparentModal', animation: 'fade', animationDuration: 180 }}
       />
       <AppStack.Screen
         name="ReportIssue"
