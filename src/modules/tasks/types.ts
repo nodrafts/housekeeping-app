@@ -1,4 +1,4 @@
-export type TaskStatus = 'OPEN' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED' | 'DONE' | 'CANCELLED' | 'CLOSED';
+export type TaskStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'DONE' | 'CANCELLED' | 'CLOSED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type TaskChecklistStatus = 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
 
@@ -75,24 +75,4 @@ export type TaskHistoryEntry = {
   changedBy?: string | null;
   changedByType?: string | null;
   createdAt?: number | null;
-};
-
-export type ComplianceJob = Omit<Task, 'id' | 'notes'> & {
-  id: number;
-  ruleId?: string | null;
-  ruleCode?: string | null;
-  assigneeTitle?: string | null;
-  evidenceLinks?: string[];
-  notes?: Array<Record<string, unknown>>;
-  details?: Record<string, unknown> | null;
-  reviewType?: string | null;
-  reviewStatus?: string | null;
-  breached?: boolean;
-  submittedAt?: string | null;
-  reviewedAt?: string | null;
-};
-
-export type UpdateComplianceJobPayload = {
-  status?: 'IN_PROGRESS' | 'SUBMITTED';
-  checklist?: TaskChecklistItem[];
 };
