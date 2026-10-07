@@ -36,15 +36,6 @@ const en = {
     starting: 'Starting...', cleaningStarted: 'Cleaning started', elapsed: 'Cleaning for {{time}}',
     couldNotStart: 'Could not start cleaning',
     greeting: 'Good morning, {{name}}', toDoCount: '{{count}} to do', readyCount: '{{count}} ready', allCount: 'All {{count}}',
-    complianceJobs: 'Compliance jobs', noComplianceJobs: 'No compliance jobs assigned to you.',
-    complianceLoadFailed: 'Could not load your compliance jobs.', due: 'Due {{date}}',
-  },
-  taskStatus: { open: 'Open', inProgress: 'In progress', submitted: 'Submitted', completed: 'Completed' },
-  taskPriority: { low: 'Low priority', medium: 'Medium priority', high: 'High priority', urgent: 'Urgent' },
-  taskDetails: {
-    title: 'Compliance task', openTask: 'Open task', checklist: 'Checklist', noChecklist: 'No checklist is required for this task.',
-    submit: 'Submit task', submitted: 'Submitted for review', completed: 'Task completed', updateFailed: 'Could not update this task. Please try again.',
-    loadFailed: 'Could not load this task.', completedCount: '{{done}} of {{total}} completed', due: 'Due {{date}}',
   },
   chat: {
     title: 'Chat', channels: 'Channels', directMessages: 'Direct messages', search: 'Search channels or people...',
@@ -132,15 +123,6 @@ const es: typeof en = {
     starting: 'Iniciando...', cleaningStarted: 'Limpieza iniciada', elapsed: 'Limpiando durante {{time}}',
     couldNotStart: 'No se pudo iniciar la limpieza',
     greeting: 'Buenos días, {{name}}', toDoCount: '{{count}} pendientes', readyCount: '{{count}} listas', allCount: 'Todas {{count}}',
-    complianceJobs: 'Tareas de cumplimiento', noComplianceJobs: 'No tienes tareas de cumplimiento asignadas.',
-    complianceLoadFailed: 'No se pudieron cargar tus tareas de cumplimiento.', due: 'Vence {{date}}',
-  },
-  taskStatus: { open: 'Abierta', inProgress: 'En progreso', submitted: 'Enviada', completed: 'Completada' },
-  taskPriority: { low: 'Prioridad baja', medium: 'Prioridad media', high: 'Prioridad alta', urgent: 'Urgente' },
-  taskDetails: {
-    title: 'Tarea de cumplimiento', openTask: 'Abrir tarea', checklist: 'Lista de tareas', noChecklist: 'Esta tarea no requiere una lista.',
-    submit: 'Enviar tarea', submitted: 'Enviada para revisión', completed: 'Tarea completada', updateFailed: 'No se pudo actualizar esta tarea. Inténtalo de nuevo.',
-    loadFailed: 'No se pudo cargar esta tarea.', completedCount: '{{done}} de {{total}} completadas', due: 'Vence {{date}}',
   },
   chat: {
     title: 'Chat', channels: 'Canales', directMessages: 'Mensajes directos', search: 'Buscar canales o personas...',

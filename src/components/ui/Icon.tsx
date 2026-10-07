@@ -14,6 +14,7 @@ export type IconName =
   | 'calendar'
   | 'chat'
   | 'check'
+  | 'chevron-down'
   | 'home'
   | 'document'
   | 'help-circle'
@@ -102,6 +103,8 @@ export function Icon({
       ) : null}
 
       {name === 'check' ? <Polyline points="20 6 9 17 4 12" /> : null}
+
+      {name === 'chevron-down' ? <Polyline points="6 9 12 15 18 9" /> : null}
 
       {name === 'skip' ? (
         <>
