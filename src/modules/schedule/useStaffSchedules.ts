@@ -127,6 +127,7 @@ type RawStaffSchedule = {
 
 type StaffScheduleListParams = {
   orgId?: string;
+  hotelCode?: string;
   employeeId?: string;
   scheduleDate?: string;
   dateFrom?: string;
@@ -275,6 +276,7 @@ function unpackSchedules(payload: any): RawStaffSchedule[] {
 
 export async function listStaffSchedules(params: StaffScheduleListParams): Promise<StaffSchedule[]> {
   const requestParams = {
+    hotelCode: params.hotelCode,
     employeeId: params.employeeId,
     date: params.scheduleDate,
     dateFrom: params.dateFrom,
@@ -309,6 +311,7 @@ export function useStaffSchedules(params: StaffScheduleListParams) {
     queryKey: [
       'staff-schedules',
       params.orgId ?? DEFAULT_ORG_ID,
+      params.hotelCode,
       params.employeeId,
       params.scheduleDate,
       params.dateFrom,

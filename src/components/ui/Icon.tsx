@@ -22,7 +22,8 @@ export type IconName =
   | 'settings'
   | 'skip'
   | 'sparkles'
-  | 'user';
+  | 'user'
+  | 'x';
 
 interface IconProps extends SvgProps {
   name: IconName;
@@ -105,6 +106,13 @@ export function Icon({
       {name === 'check' ? <Polyline points="20 6 9 17 4 12" /> : null}
 
       {name === 'chevron-down' ? <Polyline points="6 9 12 15 18 9" /> : null}
+
+      {name === 'x' ? (
+        <>
+          <Line x1="18" y1="6" x2="6" y2="18" />
+          <Line x1="6" y1="6" x2="18" y2="18" />
+        </>
+      ) : null}
 
       {name === 'skip' ? (
         <>

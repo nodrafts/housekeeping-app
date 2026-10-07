@@ -17,6 +17,7 @@ import { DEFAULT_HOTEL_CODE } from '../lib/propertyConfig';
 import { useAuth } from '../modules/auth/useAuth';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { useTranslation } from 'react-i18next';
+import { HotelSelector } from '../components/HotelSelector';
 import {
   useAvailableSwapEmployees,
   useCreateScheduleSwap,
@@ -200,7 +201,7 @@ function groupByDate(schedules: StaffSchedule[]) {
   }, {});
 }
 
-export function ScheduleScreen({ navigation }: any) {
+export function ScheduleScreen() {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const { user } = useAuth();
@@ -223,6 +224,7 @@ export function ScheduleScreen({ navigation }: any) {
   const monthDate = startOfMonth(selectedDateObject);
 
   const scheduleQuery = useStaffSchedules({
+    hotelCode,
     employeeId: user?.id,
     scheduleDate: viewMode === 'day' ? selectedDate : undefined,
     dateFrom: viewMode === 'week' ? dateToInput(weekStart) : viewMode === 'month' ? dateToInput(monthDate) : undefined,
@@ -705,32 +707,7 @@ export function ScheduleScreen({ navigation }: any) {
         }}
       >
         <View style={{ marginBottom: 14 }}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('HotelSelect')}
-            activeOpacity={0.75}
-            style={{
-              width: '100%',
-              minHeight: 44,
-              paddingHorizontal: 13,
-              borderRadius: radii.md,
-              borderWidth: 1,
-              borderColor: colors.input,
-              backgroundColor: colors.card,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 9,
-            }}
-          >
-            <Icon name="bed" size={18} color={colors.primary} />
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.78}
-              style={{ flex: 1, fontSize: 14, fontWeight: '800', color: colors.foreground }}
-            >
-              {selectedHotel?.name ?? user?.hotelName ?? hotelCode}
-            </Text>
-          </TouchableOpacity>
+          <HotelSelector />
 
           <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text
