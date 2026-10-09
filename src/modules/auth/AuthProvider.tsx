@@ -93,6 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       canAccessAllHotels: hasOrgWideAccess(currentUser),
       assignedHotels,
       orgId: data.orgId ?? currentUser.orgId ?? undefined,
+      hotelPermissions: currentUser.hotelPermissions ?? {},
+      orgPermissions: currentUser.orgPermissions ?? [],
     });
     setAccessToken(data.token);
   };

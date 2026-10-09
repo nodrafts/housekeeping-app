@@ -5,6 +5,7 @@ export function useRealtimeChannel(params: {
   userId: string | null | undefined;
   token: string | null | undefined;
   channelName: string;
+  allowDirectMessages: boolean;
 }) {
   const [status, setStatus] = useState<RealtimeStatus>(
     realtimeChatClient.getStatus(),
@@ -19,8 +20,12 @@ export function useRealtimeChannel(params: {
 
   useEffect(() => {
     if (!params.userId || !params.token) return;
-    realtimeChatClient.connect({ userId: params.userId, token: params.token });
-  }, [params.userId, params.token]);
+    realtimeChatClient.connect({
+      userId: params.userId,
+      token: params.token,
+      allowDirectMessages: params.allowDirectMessages,
+    });
+  }, [params.userId, params.token, params.allowDirectMessages]);
 
   useEffect(() => {
     if (status !== 'connected' || !params.channelName) return;
