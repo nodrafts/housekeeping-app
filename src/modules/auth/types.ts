@@ -12,6 +12,8 @@ export interface User {
   canAccessAllHotels?: boolean;
   assignedHotels?: string[];
   orgId?: string;
+  hotelPermissions?: Record<string, string[]>;
+  orgPermissions?: string[];
 }
 
 export interface AuthSession {

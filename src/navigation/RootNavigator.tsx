@@ -19,6 +19,7 @@ import { Icon, IconName } from '../components/ui/Icon';
 import { MessagingScreen } from '../screens/MessagingScreen';
 import { useTranslation } from 'react-i18next';
 import { OrganizationSelectScreen } from '../screens/OrganizationSelectScreen';
+import { hasHotelPermission } from '../modules/auth/permissions';
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
@@ -53,6 +54,8 @@ function useTabBarStyle() {
 function StaffTabNavigator() {
   const { t } = useTranslation();
   const tabBarStyle = useTabBarStyle();
+  const { user } = useAuth();
+  const canAccessChat = hasHotelPermission(user, 'perm_chat_access');
   return (
     <StaffTab.Navigator
       id="StaffTabs"
@@ -81,11 +84,11 @@ function StaffTabNavigator() {
         component={ScheduleScreen}
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: t('navigation.schedule') }}
       />
-      <StaffTab.Screen
+      {canAccessChat && <StaffTab.Screen
         name="Chat"
         component={MessagingScreen}
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />, tabBarLabel: t('navigation.chat') }}
-      />
+      />}
       <StaffTab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -98,6 +101,8 @@ function StaffTabNavigator() {
 function AdminTabNavigator() {
   const { t } = useTranslation();
   const tabBarStyle = useTabBarStyle();
+  const { user } = useAuth();
+  const canAccessChat = hasHotelPermission(user, 'perm_chat_access');
   return (
     <AdminTab.Navigator
       id="AdminTabs"
@@ -126,11 +131,11 @@ function AdminTabNavigator() {
         component={ScheduleScreen}
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: t('navigation.schedule') }}
       />
-      <AdminTab.Screen
+      {canAccessChat && <AdminTab.Screen
         name="Chat"
         component={MessagingScreen}
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />, tabBarLabel: t('navigation.chat') }}
-      />
+      />}
       <AdminTab.Screen
         name="Profile"
         component={ProfileScreen}

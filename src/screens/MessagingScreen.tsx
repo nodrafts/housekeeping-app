@@ -12,6 +12,7 @@ import { useDirectMessages, useMessages, type ChatMessage } from '../modules/cha
 import { useRealtimeChannel } from '../modules/chat/useRealtimeChannel';
 import { markMessagesRead } from '../modules/chat/useUnreadCount';
 import { useHotelStore } from '../modules/hotel/useHotelStore';
+import { hasHotelPermission } from '../modules/auth/permissions';
 
 type Conversation =
   | { kind: 'channel'; id: string; title: string; description?: string | null }
@@ -38,14 +39,15 @@ export function MessagingScreen() {
   const [draft, setDraft] = useState('');
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const [incident, setIncident] = useState<Incident | null>(null);
+  const canUseDirectMessages = hasHotelPermission(user, 'perm_chat_direct');
 
   const channelsQuery = useConversationChannels();
-  const peopleQuery = useConversationPeople(user?.orgId, selectedHotel?.hotelCode ?? user?.hotelCode, user?.id);
+  const peopleQuery = useConversationPeople(user?.orgId, selectedHotel?.hotelCode ?? user?.hotelCode, user?.id, canUseDirectMessages);
   const groupName = selected?.kind === 'channel' ? selected.id : '';
   const personId = selected?.kind === 'person' ? selected.id : '';
   const channelMessages = useMessages(groupName, 50);
   const directMessages = useDirectMessages(personId, 50);
-  const realtime = useRealtimeChannel({ userId: user?.id, token: accessToken, channelName: groupName });
+  const realtime = useRealtimeChannel({ userId: user?.id, token: accessToken, channelName: groupName, allowDirectMessages: canUseDirectMessages });
   const baseMessages = selected?.kind === 'person' ? directMessages.data ?? [] : channelMessages.data ?? [];
   const messagesLoading = selected?.kind === 'person' ? directMessages.isLoading : channelMessages.isLoading;
   const messagesError = selected?.kind === 'person' ? directMessages.isError : channelMessages.isError;
@@ -89,7 +91,7 @@ export function MessagingScreen() {
           <TextInput value={search} onChangeText={setSearch} placeholder={t('chat.search')} placeholderTextColor="#8b7a8b" style={{ marginTop: 14, height: 46, borderRadius: 12, backgroundColor: colors.card, paddingHorizontal: 14, color: colors.foreground }} />
         </View>
         <FlatList
-          data={[{ type: 'heading', id: 'channels' }, ...(channels.length ? channels.map((value) => ({ type: 'channel', id: value.channelName, value })) : [{ type: 'empty', id: 'channels-empty' }]), { type: 'heading', id: 'people' }, ...(people.length ? people.map((value) => ({ type: 'person', id: value.userId, value })) : [{ type: 'empty', id: 'people-empty' }])] as any[]}
+          data={[{ type: 'heading', id: 'channels' }, ...(channels.length ? channels.map((value) => ({ type: 'channel', id: value.channelName, value })) : [{ type: 'empty', id: 'channels-empty' }]), ...(canUseDirectMessages ? [{ type: 'heading', id: 'people' }, ...(people.length ? people.map((value) => ({ type: 'person', id: value.userId, value })) : [{ type: 'empty', id: 'people-empty' }])] : [])] as any[]}
           keyExtractor={(item) => `${item.type}-${item.id}`}
           contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
           renderItem={({ item }) => {

@@ -45,10 +45,10 @@ export function useConversationChannels() {
   });
 }
 
-export function useConversationPeople(orgId?: string, hotelCode?: string, currentUserId?: string) {
+export function useConversationPeople(orgId?: string, hotelCode?: string, currentUserId?: string, enabled = true) {
   return useQuery({
     queryKey: ['chat', 'people', orgId, hotelCode],
-    enabled: !!orgId && !!hotelCode,
+    enabled: enabled && !!orgId && !!hotelCode,
     retry: false,
     queryFn: async () => {
       const response = await api.get(`/api/v1/orgs/${encodeURIComponent(orgId!)}/hotels/${encodeURIComponent(hotelCode!)}/employee-directory`, {

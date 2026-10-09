@@ -49,7 +49,7 @@ class RealtimeChatClient {
     for (const l of this.listeners) l(event);
   }
 
-  connect(params: { userId: string; token: string }) {
+  connect(params: { userId: string; token: string; allowDirectMessages: boolean }) {
     if (this.client && (this.status === 'connecting' || this.status === 'connected')) {
       return;
     }
@@ -78,8 +78,9 @@ class RealtimeChatClient {
       },
       onConnect: () => {
         this.status = 'connected';
-        // Subscribe to personal queue for DMs/notifications.
-        client.subscribe(`/users/${params.userId}`, (msg) => this.handleIncoming(msg));
+        if (params.allowDirectMessages) {
+          client.subscribe(`/users/${params.userId}`, (msg) => this.handleIncoming(msg));
+        }
       },
       onWebSocketClose: () => {
         this.status = 'disconnected';
