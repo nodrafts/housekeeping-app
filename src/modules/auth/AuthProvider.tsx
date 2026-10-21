@@ -10,8 +10,14 @@ interface AuthContextValue {
   accessToken: string | null;
   loading: boolean;
   error: string | null;
+  passwordChangeEmail: string | null;
+  passwordChanged: boolean;
   requiresOrganizationSelection: boolean;
   login: (payload: LoginRequest) => Promise<void>;
+  startPasswordChange: (payload: LoginRequest) => Promise<void>;
+  finishPasswordChange: (newPassword: string) => Promise<void>;
+  cancelPasswordChange: () => void;
+  clearPasswordChanged: () => void;
   selectOrganization: (orgId: string) => Promise<void>;
   logout: () => void;
 }
@@ -37,6 +43,12 @@ type AuthResponse = {
   mustChangePassword: boolean;
   orgId?: string | null;
   platformAdmin?: boolean;
+};
+
+type PasswordChangeSession = {
+  email: string;
+  temporaryPassword: string;
+  token: string;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -68,6 +80,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordChangeSession, setPasswordChangeSession] = useState<PasswordChangeSession | null>(null);
+  const [passwordChanged, setPasswordChanged] = useState(false);
   const [requiresOrganizationSelection, setRequiresOrganizationSelection] = useState(false);
 
   const establishSession = async (data: AuthResponse) => {
@@ -110,6 +124,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       const { data } = response.data;
+      if (data.mustChangePassword) {
+        setPasswordChangeSession({
+          email: payload.email.trim(),
+          temporaryPassword: payload.password,
+          token: data.token,
+        });
+        return;
+      }
+
       if (data.platformAdmin && !data.orgId) {
         setAuthToken(data.token);
         setChatToken(data.token);
@@ -124,6 +147,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const startPasswordChange = async (payload: LoginRequest) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const email = payload.email.trim();
+      const response = await api.post<{ data: AuthResponse }>('/api/v1/auth/login', {
+        email,
+        password: payload.password,
+      });
+      const data = response.data.data;
+
+      if (!data.mustChangePassword) {
+        throw new Error('TEMPORARY_PASSWORD_NOT_REQUIRED');
+      }
+
+      setPasswordChangeSession({ email, temporaryPassword: payload.password, token: data.token });
+    } catch (caught) {
+      setPasswordChangeSession(null);
+      if (caught instanceof Error && caught.message === 'TEMPORARY_PASSWORD_NOT_REQUIRED') {
+        setError('TEMPORARY_PASSWORD_NOT_REQUIRED');
+      } else {
+        setError('INVALID_TEMPORARY_CREDENTIALS');
+      }
+      throw caught;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const finishPasswordChange = async (newPassword: string) => {
+    if (!passwordChangeSession) {
+      setError('PASSWORD_CHANGE_SESSION_EXPIRED');
+      throw new Error('PASSWORD_CHANGE_SESSION_EXPIRED');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await api.post('/api/v1/auth/change-password', {
+        currentPassword: passwordChangeSession.temporaryPassword,
+        newPassword,
+      }, {
+        headers: { Authorization: `Bearer ${passwordChangeSession.token}` },
+      });
+      setPasswordChangeSession(null);
+      setPasswordChanged(true);
+      setAuthToken(null);
+      setChatToken(null);
+    } catch (caught) {
+      setError('PASSWORD_CHANGE_FAILED');
+      throw caught;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelPasswordChange = () => {
+    setPasswordChangeSession(null);
+    setError(null);
   };
 
   const selectOrganization = async (orgId: string) => {
@@ -149,6 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setChatToken(null);
     setActiveOrgId(null);
     setRequiresOrganizationSelection(false);
+    setPasswordChangeSession(null);
     queryClient.clear();
   };
 
@@ -157,7 +242,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, accessToken, loading, error, requiresOrganizationSelection, login, selectOrganization, logout }}
+      value={{
+        user,
+        accessToken,
+        loading,
+        error,
+        passwordChangeEmail: passwordChangeSession?.email ?? null,
+        passwordChanged,
+        requiresOrganizationSelection,
+        login,
+        startPasswordChange,
+        finishPasswordChange,
+        cancelPasswordChange,
+        clearPasswordChanged: () => setPasswordChanged(false),
+        selectOrganization,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

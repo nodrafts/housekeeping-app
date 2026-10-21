@@ -12,14 +12,20 @@ import { PRIVACY_URL, SUPPORT_URL, TERMS_URL } from '../lib/legal';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
-export function LoginScreen({}: Props) {
+export function LoginScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { login, loading, error } = useAuth();
+  const { login, loading, error, passwordChanged, clearPasswordChanged } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => login({ email, password });
+
+  React.useEffect(() => {
+    if (!passwordChanged) return;
+    setPassword('');
+    return clearPasswordChanged;
+  }, [clearPasswordChanged, passwordChanged]);
   const openLink = async (url: string) => {
     try {
       await Linking.openURL(url);
@@ -87,10 +93,15 @@ export function LoginScreen({}: Props) {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={() => Alert.alert(t('auth.needHelp'), t('auth.helpMessage'))} style={{ alignSelf: 'flex-end', minHeight: 44, justifyContent: 'center' }}>
-              <Text style={{ fontSize: 12, color: colors.foreground, textDecorationLine: 'underline' }}>{t('auth.needHelp')}</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ForgotPassword')}
+              accessibilityRole="button"
+              style={{ alignSelf: 'flex-end', minHeight: 44, justifyContent: 'center' }}
+            >
+              <Text style={{ fontSize: 12, color: colors.foreground, textDecorationLine: 'underline' }}>{t('auth.forgotPassword')}</Text>
             </TouchableOpacity>
 
+            {passwordChanged ? <Text style={{ marginBottom: 10, color: colors.success, fontSize: 13, fontWeight: '700' }}>{t('auth.passwordChanged')}</Text> : null}
             {error ? <Text style={{ marginBottom: 10, color: colors.destructive, fontSize: 13, fontWeight: '600' }}>{t('auth.invalid')}</Text> : null}
 
             <TouchableOpacity
