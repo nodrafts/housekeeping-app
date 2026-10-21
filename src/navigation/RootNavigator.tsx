@@ -19,6 +19,7 @@ import { Icon, IconName } from '../components/ui/Icon';
 import { MessagingScreen } from '../screens/MessagingScreen';
 import { useTranslation } from 'react-i18next';
 import { OrganizationSelectScreen } from '../screens/OrganizationSelectScreen';
+import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
 import { hasHotelPermission } from '../modules/auth/permissions';
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -207,9 +208,7 @@ function AppNavigator() {
 }
 
 export function RootNavigator() {
-  const { user, loading, requiresOrganizationSelection } = useAuth();
-
-  if (loading) return null;
+  const { user, passwordChangeEmail, requiresOrganizationSelection } = useAuth();
 
   if (requiresOrganizationSelection) {
     return (
@@ -218,6 +217,17 @@ export function RootNavigator() {
         screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
       >
         <AuthStack.Screen name="OrganizationSelect" component={OrganizationSelectScreen} />
+      </AuthStack.Navigator>
+    );
+  }
+
+  if (passwordChangeEmail) {
+    return (
+      <AuthStack.Navigator
+        id="PasswordChangeAuthStack"
+        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.card } }}
+      >
+        <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       </AuthStack.Navigator>
     );
   }
@@ -234,6 +244,7 @@ export function RootNavigator() {
         }}
       >
         <AuthStack.Screen name="Login" component={LoginScreen} />
+        <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       </AuthStack.Navigator>
     );
   }
