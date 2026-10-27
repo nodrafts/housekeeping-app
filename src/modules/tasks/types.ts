@@ -21,7 +21,7 @@ export type TaskChecklistItem = {
 };
 
 export type Task = {
-  id: number;
+  id: string;
   orgId: string;
   hotelCode: string;
   templateId?: string | null;
@@ -67,7 +67,8 @@ export type UpdateTaskPayload = Partial<CreateTaskPayload> & {
 
 export type TaskHistoryEntry = {
   id: number;
-  taskId: number;
+  taskId: string;
+  taskType: string;
   orgId: string;
   hotelCode: string;
   action: string;

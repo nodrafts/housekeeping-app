@@ -45,15 +45,29 @@ function normalizeTaskPayload<T extends CreateTaskPayload | UpdateTaskPayload>(p
   };
 }
 
+function taskRef(task: Task): Task {
+  const id = String(task.id);
+  return { ...task, id: id.includes(':') ? id : `${task.taskType}:${id}` };
+}
+
+function taskPath(taskId: string) {
+  const separator = taskId.indexOf(':');
+  if (separator < 1 || separator === taskId.length - 1) {
+    throw new Error('Task reference must include both task type and job ID');
+  }
+  return `${encodeURIComponent(taskId.slice(0, separator))}/${encodeURIComponent(taskId.slice(separator + 1))}`;
+}
+
 export async function listTasks(params: ListTasksParams = {}, orgId = DEFAULT_ORG_ID): Promise<Task[]> {
   const res = await api.get<any>(`/api/v1/orgs/${orgId}/tasks`, { params });
   const data = unpackData<any>(res.data);
-  return Array.isArray(data) ? data : data?.tasks ?? [];
+  const tasks: Task[] = Array.isArray(data) ? data : data?.tasks ?? [];
+  return tasks.map(taskRef);
 }
 
-export async function getTask(taskId: number, orgId = DEFAULT_ORG_ID): Promise<Task> {
-  const res = await api.get<any>(`/api/v1/orgs/${orgId}/tasks/${taskId}`);
-  return unpackData<Task>(res.data);
+export async function getTask(taskId: string, orgId = DEFAULT_ORG_ID): Promise<Task> {
+  const res = await api.get<any>(`/api/v1/orgs/${orgId}/tasks/${taskPath(taskId)}`);
+  return taskRef(unpackData<Task>(res.data));
 }
 
 export async function createTask(payload: CreateTaskPayload, orgId = DEFAULT_ORG_ID): Promise<Task> {
@@ -61,21 +75,27 @@ export async function createTask(payload: CreateTaskPayload, orgId = DEFAULT_ORG
     `/api/v1/orgs/${orgId}/tasks`,
     normalizeTaskPayload(payload),
   );
-  return unpackData<Task>(res.data);
+  return taskRef(unpackData<Task>(res.data));
 }
 
-export async function updateTask(taskId: number, payload: UpdateTaskPayload, orgId = DEFAULT_ORG_ID): Promise<Task> {
+export async function updateTask(taskId: string, payload: UpdateTaskPayload, orgId = DEFAULT_ORG_ID): Promise<Task> {
   const res = await api.patch<any>(
-    `/api/v1/orgs/${orgId}/tasks/${taskId}`,
+    `/api/v1/orgs/${orgId}/tasks/${taskPath(taskId)}`,
     normalizeTaskPayload(payload),
   );
-  return unpackData<Task>(res.data);
+  return taskRef(unpackData<Task>(res.data));
 }
 
-export async function getTaskHistory(taskId: number, orgId = DEFAULT_ORG_ID): Promise<TaskHistoryEntry[]> {
-  const res = await api.get<any>(`/api/v1/orgs/${orgId}/tasks/${taskId}/history`);
+export async function getTaskHistory(taskId: string, orgId = DEFAULT_ORG_ID): Promise<TaskHistoryEntry[]> {
+  const res = await api.get<any>(`/api/v1/orgs/${orgId}/tasks/${taskPath(taskId)}/history`);
   const data = unpackData<any>(res.data);
-  return Array.isArray(data) ? data : data?.history ?? [];
+  const history: TaskHistoryEntry[] = Array.isArray(data) ? data : data?.history ?? [];
+  return history.map(entry => ({
+    ...entry,
+    taskId: String(entry.taskId).includes(':')
+      ? String(entry.taskId)
+      : `${entry.taskType}:${entry.taskId}`,
+  }));
 }
 
 export function buildIncidentTaskSource(incidentId: number | string): TaskSource {
@@ -110,7 +130,7 @@ export function useCreateTask(orgId = DEFAULT_ORG_ID) {
 export function useUpdateTask(orgId = DEFAULT_ORG_ID) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ taskId, payload }: { taskId: number; payload: UpdateTaskPayload }) =>
+    mutationFn: ({ taskId, payload }: { taskId: string; payload: UpdateTaskPayload }) =>
       updateTask(taskId, payload, orgId),
     onSuccess: (task) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', orgId] });
@@ -119,10 +139,10 @@ export function useUpdateTask(orgId = DEFAULT_ORG_ID) {
   });
 }
 
-export function useTaskHistory(taskId?: number, orgId = DEFAULT_ORG_ID) {
+export function useTaskHistory(taskId?: string, orgId = DEFAULT_ORG_ID) {
   return useQuery({
     queryKey: ['task-history', orgId, taskId],
-    queryFn: () => getTaskHistory(taskId as number, orgId),
+    queryFn: () => getTaskHistory(taskId as string, orgId),
     enabled: taskId != null,
   });
 }
