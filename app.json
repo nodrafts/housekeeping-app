@@ -18,9 +18,7 @@
     "android": {
       "package": "com.nodrafts.housekeeping",
       "versionCode": 1,
-      "blockedPermissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "favicon": "./assets/app-icon.png"
@@ -34,7 +32,8 @@
           "microphonePermission": false
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-notifications"
     ]
   }
 }
