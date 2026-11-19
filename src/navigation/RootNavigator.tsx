@@ -3,7 +3,12 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { AuthStackParamList, AppStackParamList, StaffTabParamList, AdminTabParamList } from './types';
+import {
+  AuthStackParamList,
+  AppStackParamList,
+  StaffTabParamList,
+  AdminTabParamList,
+} from './types';
 import { LoginScreen } from '../screens/LoginScreen';
 import { RoomsListScreen } from '../screens/RoomsListScreen';
 import { ScheduleScreen } from '../screens/ScheduleScreen';
@@ -21,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import { OrganizationSelectScreen } from '../screens/OrganizationSelectScreen';
 import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
 import { hasHotelPermission } from '../modules/auth/permissions';
+import { ChatNotifications } from '../modules/chat/ChatNotifications';
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
@@ -35,21 +41,30 @@ const TAB_TRANSITION = {
 };
 
 function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
-  return <Icon name={name} size={22} color={focused ? colors.primary : colors.mutedForeground} />;
+  return (
+    <Icon
+      name={name}
+      size={22}
+      color={focused ? colors.primary : colors.mutedForeground}
+    />
+  );
 }
 
 function useTabBarStyle() {
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'web' ? 14 : 0);
 
-  return useMemo(() => ({
-    backgroundColor: colors.card,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
-    height: 64 + bottomInset,
-    paddingBottom: Math.max(9, bottomInset),
-    paddingTop: 7,
-  }), [bottomInset]);
+  return useMemo(
+    () => ({
+      backgroundColor: colors.card,
+      borderTopColor: colors.border,
+      borderTopWidth: 1,
+      height: 64 + bottomInset,
+      paddingBottom: Math.max(9, bottomInset),
+      paddingTop: 7,
+    }),
+    [bottomInset],
+  );
 }
 
 function StaffTabNavigator() {
@@ -78,22 +93,42 @@ function StaffTabNavigator() {
       <StaffTab.Screen
         name="Housekeeping"
         component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="bed" focused={focused} />, tabBarLabel: t('navigation.housekeeping') }}
+        options={{
+          tabBarIcon: ({ focused }) => <TabIcon name="bed" focused={focused} />,
+          tabBarLabel: t('navigation.housekeeping'),
+        }}
       />
       <StaffTab.Screen
         name="Schedule"
         component={ScheduleScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: t('navigation.schedule') }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="calendar" focused={focused} />
+          ),
+          tabBarLabel: t('navigation.schedule'),
+        }}
       />
-      {canAccessChat && <StaffTab.Screen
-        name="Chat"
-        component={MessagingScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />, tabBarLabel: t('navigation.chat') }}
-      />}
+      {canAccessChat && (
+        <StaffTab.Screen
+          name="Chat"
+          component={MessagingScreen}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name="chat" focused={focused} />
+            ),
+            tabBarLabel: t('navigation.chat'),
+          }}
+        />
+      )}
       <StaffTab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />, tabBarLabel: t('navigation.profile') }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="user" focused={focused} />
+          ),
+          tabBarLabel: t('navigation.profile'),
+        }}
       />
     </StaffTab.Navigator>
   );
@@ -125,22 +160,42 @@ function AdminTabNavigator() {
       <AdminTab.Screen
         name="Housekeeping"
         component={RoomsListScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="bed" focused={focused} />, tabBarLabel: t('navigation.housekeeping') }}
+        options={{
+          tabBarIcon: ({ focused }) => <TabIcon name="bed" focused={focused} />,
+          tabBarLabel: t('navigation.housekeeping'),
+        }}
       />
       <AdminTab.Screen
         name="Schedule"
         component={ScheduleScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />, tabBarLabel: t('navigation.schedule') }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="calendar" focused={focused} />
+          ),
+          tabBarLabel: t('navigation.schedule'),
+        }}
       />
-      {canAccessChat && <AdminTab.Screen
-        name="Chat"
-        component={MessagingScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />, tabBarLabel: t('navigation.chat') }}
-      />}
+      {canAccessChat && (
+        <AdminTab.Screen
+          name="Chat"
+          component={MessagingScreen}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name="chat" focused={focused} />
+            ),
+            tabBarLabel: t('navigation.chat'),
+          }}
+        />
+      )}
       <AdminTab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />, tabBarLabel: t('navigation.profile') }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="user" focused={focused} />
+          ),
+          tabBarLabel: t('navigation.profile'),
+        }}
       />
     </AdminTab.Navigator>
   );
@@ -154,7 +209,8 @@ function AppNavigator() {
 
   useEffect(() => {
     if (selectedHotel) return;
-    const hotelCode = user?.hotelCode ?? user?.assignedHotels?.[0] ?? DEFAULT_HOTEL_CODE;
+    const hotelCode =
+      user?.hotelCode ?? user?.assignedHotels?.[0] ?? DEFAULT_HOTEL_CODE;
     setSelectedHotel({
       hotelCode,
       name: user?.hotelName ?? hotelCode,
@@ -208,15 +264,22 @@ function AppNavigator() {
 }
 
 export function RootNavigator() {
-  const { user, passwordChangeEmail, requiresOrganizationSelection } = useAuth();
+  const { user, passwordChangeEmail, requiresOrganizationSelection } =
+    useAuth();
 
   if (requiresOrganizationSelection) {
     return (
       <AuthStack.Navigator
         id="OrganizationAuthStack"
-        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+        }}
       >
-        <AuthStack.Screen name="OrganizationSelect" component={OrganizationSelectScreen} />
+        <AuthStack.Screen
+          name="OrganizationSelect"
+          component={OrganizationSelectScreen}
+        />
       </AuthStack.Navigator>
     );
   }
@@ -225,9 +288,15 @@ export function RootNavigator() {
     return (
       <AuthStack.Navigator
         id="PasswordChangeAuthStack"
-        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.card } }}
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.card },
+        }}
       >
-        <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <AuthStack.Screen
+          name="ForgotPassword"
+          component={ForgotPasswordScreen}
+        />
       </AuthStack.Navigator>
     );
   }
@@ -244,10 +313,18 @@ export function RootNavigator() {
         }}
       >
         <AuthStack.Screen name="Login" component={LoginScreen} />
-        <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <AuthStack.Screen
+          name="ForgotPassword"
+          component={ForgotPasswordScreen}
+        />
       </AuthStack.Navigator>
     );
   }
 
-  return <AppNavigator />;
+  return (
+    <>
+      <ChatNotifications />
+      <AppNavigator />
+    </>
+  );
 }

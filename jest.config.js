@@ -5,6 +5,7 @@ module.exports = {
     '^expo-localization$': '<rootDir>/__mocks__/expo-localization.js',
     '^expo-file-system/legacy$': '<rootDir>/__mocks__/expo-file-system-legacy.js',
     '^expo-image-picker$': '<rootDir>/__mocks__/expo-image-picker.js',
+    '^expo-notifications$': '<rootDir>/__mocks__/expo-notifications.js',
   },
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native|@react-navigation|react-native-.*|@tanstack|expo|expo-.*|@expo/.*)/)',

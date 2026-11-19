@@ -7,7 +7,11 @@ import {
   encodeChatEventToBase64,
 } from './avro';
 
-export type RealtimeStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+export type RealtimeStatus =
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'error';
 
 export type IncomingChatEvent =
   | {
@@ -33,6 +37,16 @@ class RealtimeChatClient {
   private listeners = new Set<Listener>();
   private currentUserId: string | null = null;
   private currentToken: string | null = null;
+  private subscriptions = new Set<string>();
+  private activeChannel: string | null = null;
+
+  setActiveChannel(channelName: string | null) {
+    this.activeChannel = channelName;
+  }
+
+  getActiveChannel() {
+    return this.activeChannel;
+  }
 
   getStatus() {
     return this.status;
@@ -49,8 +63,15 @@ class RealtimeChatClient {
     for (const l of this.listeners) l(event);
   }
 
-  connect(params: { userId: string; token: string; allowDirectMessages: boolean }) {
-    if (this.client && (this.status === 'connecting' || this.status === 'connected')) {
+  connect(params: {
+    userId: string;
+    token: string;
+    allowDirectMessages: boolean;
+  }) {
+    if (
+      this.client &&
+      (this.status === 'connecting' || this.status === 'connected')
+    ) {
       return;
     }
 
@@ -78,8 +99,11 @@ class RealtimeChatClient {
       },
       onConnect: () => {
         this.status = 'connected';
+        this.subscriptions.clear();
         if (params.allowDirectMessages) {
-          client.subscribe(`/users/${params.userId}`, (msg) => this.handleIncoming(msg));
+          client.subscribe(`/users/${params.userId}`, msg =>
+            this.handleIncoming(msg),
+          );
         }
       },
       onWebSocketClose: () => {
@@ -104,10 +128,18 @@ class RealtimeChatClient {
 
   subscribeToChannel(channelName: string) {
     if (!this.client || this.status !== 'connected') return;
-    this.client.subscribe(`/channels/${channelName}`, (msg) => this.handleIncoming(msg));
+    if (this.subscriptions.has(channelName)) return;
+    this.client.subscribe(`/channels/${channelName}`, msg =>
+      this.handleIncoming(msg),
+    );
+    this.subscriptions.add(channelName);
   }
 
-  sendTextToChannel(params: { channelName: string; text: string; messageId: string }) {
+  sendTextToChannel(params: {
+    channelName: string;
+    text: string;
+    messageId: string;
+  }) {
     if (!this.client || this.status !== 'connected') return;
     if (!this.currentUserId || !this.currentToken) return;
 
@@ -130,18 +162,28 @@ class RealtimeChatClient {
     });
   }
 
-  sendTextToUser(params: { targetUserId: string; text: string; messageId: string }) {
+  sendTextToUser(params: {
+    targetUserId: string;
+    text: string;
+    messageId: string;
+  }) {
     if (!this.client || this.status !== 'connected') return;
     if (!this.currentUserId || !this.currentToken) return;
-    const content = encodeChatEventToBase64(createUserTextMessageEvent({
-      userId: this.currentUserId,
-      targetUserId: params.targetUserId,
-      text: params.text,
-      messageId: params.messageId,
-    }));
+    const content = encodeChatEventToBase64(
+      createUserTextMessageEvent({
+        userId: this.currentUserId,
+        targetUserId: params.targetUserId,
+        text: params.text,
+        messageId: params.messageId,
+      }),
+    );
     this.client.publish({
       destination: SEND_DESTINATION,
-      body: JSON.stringify({ userId: this.currentUserId, token: this.currentToken, content }),
+      body: JSON.stringify({
+        userId: this.currentUserId,
+        token: this.currentToken,
+        content,
+      }),
     });
   }
 
@@ -184,4 +226,3 @@ class RealtimeChatClient {
 }
 
 export const realtimeChatClient = new RealtimeChatClient();
-
