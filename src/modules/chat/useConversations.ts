@@ -67,19 +67,16 @@ export function useConversationChannels() {
 
 export function useConversationPeople(
   orgId?: string,
-  hotelCode?: string,
   currentUserId?: string,
   enabled = true,
 ) {
   return useQuery({
-    queryKey: ['chat', 'people', orgId, hotelCode],
-    enabled: enabled && !!orgId && !!hotelCode,
+    queryKey: ['chat', 'people', orgId],
+    enabled: enabled && !!orgId,
     retry: false,
     queryFn: async () => {
       const response = await api.get(
-        `/api/v1/orgs/${encodeURIComponent(orgId!)}/hotels/${encodeURIComponent(
-          hotelCode!,
-        )}/employee-directory`,
+        `/api/v1/orgs/${encodeURIComponent(orgId!)}/employees`,
         {
           headers: { 'X-Org-Id': orgId! },
           timeout: 15000,
