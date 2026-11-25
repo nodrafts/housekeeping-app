@@ -34,7 +34,6 @@ import {
 } from '../modules/chat/useMessages';
 import { useRealtimeChannel } from '../modules/chat/useRealtimeChannel';
 import { markMessagesRead } from '../modules/chat/useUnreadCount';
-import { useHotelStore } from '../modules/hotel/useHotelStore';
 import { hasHotelPermission } from '../modules/auth/permissions';
 import {
   addChannelMember,
@@ -95,7 +94,6 @@ function initials(value: string) {
 export function MessagingScreen() {
   const { t } = useTranslation();
   const { user, accessToken } = useAuthContext();
-  const { selectedHotel } = useHotelStore();
   const [selected, setSelected] = useState<Conversation | null>(null);
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState('');
@@ -120,7 +118,6 @@ export function MessagingScreen() {
   const channelsQuery = useConversationChannels();
   const peopleQuery = useConversationPeople(
     user?.orgId,
-    selectedHotel?.hotelCode ?? user?.hotelCode,
     user?.id,
     canUseDirectMessages || canManageChannels,
   );
